@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.4",
+    "@vitest/ui": "^4.0.4",
+    "jsdom": "^27.0.1",
+    "vitest": "^4.0.4"
+  }
+}
