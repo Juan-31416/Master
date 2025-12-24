@@ -13,7 +13,7 @@ import numpy as np
 import pickle
 from pathlib import Path
 
-class QlearningAgent:
+class QLearningAgent:
     """
     Tabular Q-learning agent for discrete state-action spaces.
 
@@ -82,7 +82,7 @@ class QlearningAgent:
             Action (node_id)
         """
 
-        self._ensure_state_exists(state)
+        self._ensure_state_exist(state)
         if action not in self.Q[state]:
             self.Q[state][action] = 0.0
 
@@ -131,7 +131,7 @@ class QlearningAgent:
         assert len(valid_actions) > 0, "valid actions cannot be empty"
 
         # Epsilon-greedy: explore with probability epsilon
-        if self.rgn.random() < self.epsilon:
+        if self.rng.random() < self.epsilon:
             return self.rng.choice(valid_actions)
         else:
             for action in valid_actions:
@@ -210,7 +210,7 @@ class QlearningAgent:
         """
 
         # Create directory if it doesn't exist
-        Path(path).parent.mkadir(parents=True, exist_ok=True)
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
 
         # Package data
         data = {
@@ -274,13 +274,13 @@ class QlearningAgent:
         
         stats = {
             "num_states": num_states,
-            "num_satate_action_pairs": num_state_action_pairs,
+            "num_state_action_pairs": num_state_action_pairs,
             "epsilon": self.epsilon,
         }
 
         if all_q_values:
             stats.update({
-                "q_mean": np.menan(all_q_values),
+                "q_mean": np.mean(all_q_values),
                 "q_std": np.std(all_q_values),
                 "q_min": np.min(all_q_values),
                 "q_max": np.max(all_q_values)
