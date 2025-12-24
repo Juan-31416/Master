@@ -38,10 +38,12 @@ NODE_ROLES_PLANT = {
 
 REWARD_PARAMS_DEFAULT = {
     'r_step': -1.0,           # Penalty per step (encourages shorter paths)
-    'r_queue_coeff': -0.3,    # Queue penalty coefficient
-    'r_completion': 20.0,     # Bonus for successful job completion
+    'r_queue_factor': -0.3,    # Queue penalty coefficient
+    'r_task_completion': 20.0,     # Bonus for successful job completion
     'r_failure': -30.0,       # Penalty for failures (invalid action, timeout)
 }
+
+MAX_STEPS = 100     # Maximum steps per episode before timeout
 
 # Default job generation candidates
 DEFAULT_START_CANDIDATES = [0, 6, 10]
