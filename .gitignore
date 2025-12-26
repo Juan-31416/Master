@@ -1,4 +1,33 @@
 # Created by venv; see https://docs.python.org/3/library/venv.html
-*
-* tests/
-* results/
+
+# --- VIRTUAL ENVIRONMENT ---
+venv/
+bin/
+include/
+lib/
+lib64/
+pyvenv.cfg
+
+# --- PYTHON (Cache & temps) ---
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# --- Machine Learning & Data ---
+tests/
+results/
+*.pth
+*.pkl
+*.h5
+*.onnx
+
+# --- Node.js / Frontend ---
+node_modules/
+npm-debug.log*
+
+# --- Sistem & Editors ---
+.DS_Store
+.vscode/
+.idea/
+*.swp

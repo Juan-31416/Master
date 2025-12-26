@@ -66,6 +66,7 @@ class RoutingEnv:
         self.graph = graph
         self.node_roles = node_roles
         
+        
         # Reward parameters
         self.r_step = reward_params["r_step"]
         self.r_queue_factor = reward_params["r_queue_factor"]
