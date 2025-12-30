@@ -7,6 +7,26 @@ This module contains:
 - REWARD_PARAMS_DEFAULT: Default reward function parameters
 """
 
+# Toy graphs for debugging
+GRAPH_TOY= {
+    0: [1, 2],
+    1: [0, 2, 3],
+    2: [0, 1, 3],
+    3: [1, 2],
+}
+
+NODE_ROLES_TOY = {
+    "start": {0},
+    "pickup": {1},
+    "drop": {3},
+}
+
+DEFAULT_START_CANDIDATES_TOY = [0]
+DEFAULT_PICKUP_CANDIDATES_TOY = [1]
+DEFAULT_DROP_CANDIDATES_TOY = [3]
+MAX_STEPS_TOY = 15
+
+# Definitive graphs
 GRAPH_PLANT = {
     0: [1, 10],
     1: [0, 2, 11],
@@ -39,8 +59,8 @@ NODE_ROLES_PLANT = {
 REWARD_PARAMS_DEFAULT = {
     'r_step': -1.0,           # Penalty per step (encourages shorter paths)
     'r_queue_factor': -0.3,    # Queue penalty coefficient
-    'r_task_completion': 20.0,     # Bonus for successful job completion
-    'r_failure': -30.0,       # Penalty for failures (invalid action, timeout)
+    'r_task_completion': 50.0,     # Bonus for successful job completion
+    'r_failure': -20.0,       # Penalty for failures (invalid action, timeout)
 }
 
 MAX_STEPS = 100     # Maximum steps per episode before timeout
@@ -66,9 +86,9 @@ def validate_graph(graph):
     for node, neighbors in graph.items():
         for neighbor in neighbors:
             if neighbor not in graph:
-                raise ValueError(f"Node {neighbor} in adjacency lst of {node} but not in graph")
-                if node not in graph[neighbor]:
-                    raise ValueError(f"Graphs is not undirected: edge ({node}, {neighbor}) missing reverse")
+                raise ValueError(f"Node {neighbor} in adjacency list of {node} but not in graph")
+            if node not in graph[neighbor]:
+                raise ValueError(f"Graphs is not undirected: edge ({node}, {neighbor}) missing reverse")
     return True
 
 def get_graph_info(graph):

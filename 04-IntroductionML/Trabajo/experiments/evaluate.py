@@ -78,7 +78,7 @@ def evaluate_agent_on_queue_level(
 
     # Store original epsilon and set it to 0 (greedy)
     original_epsilon = agent.epsilon
-    agent_epsilon = 0.0
+    agent.epsilon = 0.0
 
     episode_rewards = []
     episode_steps = []
@@ -107,7 +107,7 @@ def evaluate_agent_on_queue_level(
         episode_terminations.append(termination_reason)
     
     # Restore original epsilon
-    agent_epsilon = original_epsilon
+    agent.epsilon = original_epsilon
 
     # Compute metrics
     success_count = sum(1 for t in episode_terminations if t == "success")
@@ -189,21 +189,21 @@ def evaluate_agent(
             seed=SEED,
         )
 
-    # Evaluate
-    results = evaluate_agent_on_queue_level(
-        agent=agent,
-        env=env,
-        queue_level=queue_level,
-        num_episodes=num_episodes
-    )
+        # Evaluate
+        results = evaluate_agent_on_queue_level(
+            agent=agent,
+            env=env,
+            queue_level=queue_level,
+            num_episodes=num_episodes
+        )
 
-    all_results[queue_level] = results
+        all_results[queue_level] = results
 
-    # Print results
-    print(f"  Avg reward: {results['avg_reward']:.2f} ± {results['std_reward']:.2f}")
-    print(f"  Avg steps: {results['avg_steps']:.1f} ± {results['std_steps']:.1f}")
-    print(f"  Success rate: {results['success_rate']:.1%} ({results['success_count']}/{num_episodes})")
-    print()
+        # Print results
+        print(f"  Avg reward: {results['avg_reward']:.2f} ± {results['std_reward']:.2f}")
+        print(f"  Avg steps: {results['avg_steps']:.1f} ± {results['std_steps']:.1f}")
+        print(f"  Success rate: {results['success_rate']:.1%} ({results['success_count']}/{num_episodes})")
+        print()
     
     return all_results
 

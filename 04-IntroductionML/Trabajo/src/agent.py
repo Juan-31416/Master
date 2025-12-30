@@ -13,6 +13,8 @@ import numpy as np
 import pickle
 from pathlib import Path
 
+State = Tuple[int, int, int, int, int, int]  # (loc, bat, queue, load, pickup, drop)
+
 class QLearningAgent:
     """
     Tabular Q-learning agent for discrete state-action spaces.
@@ -50,33 +52,33 @@ class QLearningAgent:
         self.epsilon_decay = epsilon_decay
 
         # Q-table: Q[state][action] = value
-        self.Q: Dict[Tuple[int, int, int, int], Dict[int, float]] = {}
+        self.Q: Dict[State, Dict[int, float]] = {}
 
         # Random number generation
         self.rng = np.random.default_rng(seed)
 
-    def _ensure_state_exist(self, state: Tuple[int, int, int, int]) -> None:
+    def _ensure_state_exist(self, state: State) -> None:
         """
         Ensure that a state exists in the Q-table.
         If not, initialize it with an empty action dict.
 
         Parameters
         ----------
-        state : Tuple[int, int, int, int]
+        state : State
             State tuple (location_id, battery_level, queue_level, load_state)
         """
 
         if state not in self.Q:
             self.Q[state] = {}
 
-    def _ensure_action_exists(self, state:Tuple[int, int, int, int], action: int) -> None:
+    def _ensure_action_exists(self, state:State, action: int) -> None:
         """
         Ensure that a state-action pait exists in the Q-table.
         If not, initialize Q(state, action) to 0.0.
 
         Parameters
         ----------
-        state : Tuple[int, int, int, int]
+        state : TState
             State tuple
         action : int
             Action (node_id)
@@ -86,14 +88,14 @@ class QLearningAgent:
         if action not in self.Q[state]:
             self.Q[state][action] = 0.0
 
-    def get_q_value(self, state: Tuple[int, int, int, int], action: int) -> float:
+    def get_q_value(self, state: State, action: int) -> float:
         """
         Get Q-value for a state-action pair.
         Returns 0.0 if the pair has not been seen before.
 
         Parameters
         ----------
-        state : Tuple[int, int, int, int]
+        state : State
             State tuple
         action : int
             Action (node_id)
@@ -109,7 +111,7 @@ class QLearningAgent:
 
     def select_action(
         self,
-        state: Tuple[int, int, int, int],
+        state: State,
         valid_actions: List[int]
     ) -> int:
         """
@@ -117,7 +119,7 @@ class QLearningAgent:
 
         Parameters
         ----------
-        state : Tuple[int, int, int, int]
+        state : State
             Current state
         valid_actions : List[int]
             List of valid actions (neighbor nodes)
@@ -147,10 +149,10 @@ class QLearningAgent:
     
     def update(
         self,
-        state: Tuple[int, int, int, int],
+        state: State,
         action: int,
         reward: float,
-        next_state: Tuple[int, int, int, int],
+        next_state: State,
         next_valid_actions: List[int],
         done: bool
     ) -> None:

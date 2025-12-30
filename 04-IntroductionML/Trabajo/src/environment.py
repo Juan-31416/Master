@@ -61,6 +61,8 @@ class RoutingEnv:
         queue_sampling: str = "uniform",
         fixed_queue_level: Optional[int] = None,
         seed: Optional[int] = None,
+        penalize_revisits: bool = False,
+        revisit_penalty_factor: float = -0.5
     ):
         # Graph structure
         self.graph = graph
@@ -86,6 +88,8 @@ class RoutingEnv:
             f"queue_sampling must be 'uniform' or 'fixed', got {queue_sampling}"
         self.queue_sampling = queue_sampling
         self.fixed_queue_level = fixed_queue_level
+        self.penalize_revisits = penalize_revisits
+        self.revisit_penalty_factor = revisit_penalty_factor
         if queue_sampling == "fixed":
             assert fixed_queue_level is not None, \
                 "fixed_queue_level must be provided when queue_sampling='fixed'"
@@ -110,8 +114,9 @@ class RoutingEnv:
         self.step_count: int = 0
         self.done: bool = False
         self.termination_reason: Optional[str] = None
+        self.state_visit_count: Dict[Tuple[int, int, int, int, int, int], int] = {}
         
-    def reset(self) -> Tuple[int, int, int, int]:
+    def reset(self) -> Tuple[int, int, int, int, int, int]:
         """
         Reset the environment for a new episode (new job).
         
@@ -122,8 +127,20 @@ class RoutingEnv:
         """
         # Sample job parameters
         self.start_node = self.rng.choice(self.start_candidates)
-        self.pickup_node = self.rng.choice(self.pickup_candidates)
-        self.drop_node = self.rng.choice(self.drop_candidates)
+        # self.pickup_node = self.rng.choice(self.pickup_candidates)
+        # self.drop_node = self.rng.choice(self.drop_candidates)
+        
+        # Ensure pickup != start
+        pickup_choices = [p for p in self.pickup_candidates if p != self.start_node]
+        if not pickup_choices:
+            pickup_choices = self.pickup_candidates  # Fallback
+        self.pickup_node = self.rng.choice(pickup_choices)
+
+        # Ensure drop != pickup
+        drop_choices = [d for d in self.drop_candidates if d != self.pickup_node]
+        if not drop_choices:
+            drop_choices = self.drop_candidates  # Fallback
+        self.drop_node = self.rng.choice(drop_choices)
         
         # Sample or fix queue level
         if self.queue_sampling == "uniform":
@@ -140,6 +157,14 @@ class RoutingEnv:
         self.step_count = 0
         self.done = False
         self.termination_reason = None
+
+        # Reset episode tracking
+        self.step_count = 0
+        self.done = False
+        self.termination_reason = None
+
+        # Reset visit counts for revisit penalty
+        self.state_visit_count.clear()
         
         return self._get_state()
     
@@ -167,6 +192,14 @@ class RoutingEnv:
         
         # Initialize reward with per-step and queue penalties
         reward = self.r_step + self.r_queue_factor * self.queue_level
+
+        # Apply revisit penalty if enabled
+        if self.penalize_revisits:
+            current_state = self._get_state()
+            visit_count = self.state_visit_count.get(current_state, 0)
+            if visit_count > 0:
+                reward += self.revisit_penalty_factor * visit_count
+            self.state_visit_count[current_state] = visit_count + 1
         
         # Validate action (must be a neighbor)
         valid_actions = self.get_valid_actions()
@@ -232,8 +265,27 @@ class RoutingEnv:
         state : Tuple[int, int, int, int]
             (location_id, battery_level, queue_level, load_state)
         """
-        return (self.location_id, self.battery_level, self.queue_level, self.load_state)
+        return (self.location_id, self.battery_level, self.queue_level, self.load_state, self.pickup_node, self.drop_node)
     
+    @property
+    def current_job(self) -> Dict[str, Optional[int]]:
+        """
+        Get current job parameters as a dictionary.
+
+        Returns
+        -------
+        job_info : Dict[str, Optional[int]]
+            Dictionary with keys: 'start', 'pickup', 'drop'
+        """
+        return {
+            "start": self.start_node,
+            "pickup": self.pickup_node,
+            "drop": self.drop_node
+        }
+
+def render(self) -> None:
+    # ... resto del código
+
     def render(self) -> None:
         """
         Print current episode state for debugging.

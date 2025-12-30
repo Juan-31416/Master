@@ -20,15 +20,24 @@ from src.environment import RoutingEnv
 from src.agent import QLearningAgent
 from src.utils import setup_logging, log_episode, print_training_progress
 from config.graphs import (
+    DEFAULT_DROP_CANDIDATES_TOY,
+    DEFAULT_PICKUP_CANDIDATES_TOY,
+    DEFAULT_START_CANDIDATES_TOY,
     GRAPH_PLANT,
+    GRAPH_TOY,
     MAX_STEPS,
+    MAX_STEPS_TOY,
     NODE_ROLES_PLANT,
+    NODE_ROLES_TOY,
     REWARD_PARAMS_DEFAULT,
     DEFAULT_START_CANDIDATES,
     DEFAULT_PICKUP_CANDIDATES,
     DEFAULT_DROP_CANDIDATES,
 )
+from collections import Counter
 
+termination_counter = Counter() # For debugging purposses
+ 
 # ===================================================
 #               TRAINING CONFIGURATION
 # ===================================================
@@ -38,7 +47,7 @@ ALPHA = 0.1             # Learning rate
 GAMMA = 0.95            # Discount factor
 EPSILON_START = 1.0     # Initial exploration rate
 EPSILON_MIN = 0.05      # Minimum exploration rate
-EPSILON_DECAY = 0.995   # Multiplicative decay per episode
+EPSILON_DECAY = 0.999   # Multiplicative decay per episode
 
 # Training parameters
 NUM_EPISODES = 3000     # Total number of training episodes
@@ -88,7 +97,23 @@ def train():
     print("=" * 80)
     print()
 
+    # Initialize toy env
+    """
+    env = RoutingEnv(
+        graph=GRAPH_TOY,
+        node_roles=NODE_ROLES_TOY,
+        reward_params=REWARD_PARAMS_DEFAULT,
+        max_steps=MAX_STEPS_TOY,
+        start_candidates=DEFAULT_START_CANDIDATES_TOY,
+        pickup_candidates=DEFAULT_PICKUP_CANDIDATES_TOY,
+        drop_candidates=DEFAULT_DROP_CANDIDATES_TOY,
+        queue_sampling="uniform",
+        seed=SEED,
+    )
+    """
+
     # Initiallize environment
+    
     env = RoutingEnv(
         graph=GRAPH_PLANT,
         node_roles=NODE_ROLES_PLANT,
@@ -99,7 +124,10 @@ def train():
         drop_candidates=DEFAULT_DROP_CANDIDATES,
         queue_sampling="uniform",
         seed=SEED,
+        penalize_revisits=True,
+        revisit_penalty_factor=-2.0,
     )
+    
 
     # Initialize agent
     agent = QLearningAgent(
@@ -114,7 +142,7 @@ def train():
     # Training metrics (for progress tracking)
     episode_rewards = []
     episode_steps = []
-    episode_terminatios = []
+    episode_terminations = []
 
     # Training loop
     print("Starting training...\n")
@@ -137,26 +165,35 @@ def train():
 
             # Get valid actions for net state (for Q-learnig update)
             if not done:
-                next_valild_actions = env.get_valid_actions()
+                next_valid_actions = env.get_valid_actions()
             else:
                 next_valid_actions= []
             
             # Update Q-table
-            agent.update(state, action, reward, next_state, next_valild_actions, done)
+            agent.update(state, action, reward, next_state, next_valid_actions, done)
 
             # Update state and metrics
             state = next_state
             episode_reward += reward
             step_count += 1
         
-        # Decay epsilon after episode
-        agent.decay_epsilon()
+       
 
         # Store metrics
         episode_rewards.append(episode_reward)
         episode_steps.append(step_count)
         termination_reason = info.get("termination_reason", "unknown")
-        episode_terminatios.append(termination_reason)
+
+        if episode <= 10 or episode % 100 == 0:
+            print(f"Ep {episode}: start={env.start_node}, pickup={env.pickup_node}, drop={env.drop_node}, "
+                f"reward={episode_reward:.1f}, steps={step_count}, reason={termination_reason}")
+
+        termination_reason = info.get("termination_reason", "unknown")
+        episode_terminations.append(termination_reason)
+        termination_counter[termination_reason] += 1
+
+        # Decay epsilon after episode
+        agent.decay_epsilon()
 
         # Log episode
         log_episode(
@@ -175,7 +212,7 @@ def train():
                 total_episodes=NUM_EPISODES,
                 recent_rewards=episode_rewards[-PRINT_EVERY:],
                 recent_steps=episode_steps[-PRINT_EVERY:],
-                recent_terminations=episode_terminatios[-PRINT_EVERY:],
+                recent_terminations=episode_terminations[-PRINT_EVERY:],
                 epsilon=agent.epsilon,
             )
 
@@ -202,6 +239,11 @@ def train():
     print(f"Final model saved: {final_save_path}")
     print(f"Training log saved: {log_path}")
     print("\n" + "=" * 80)
+
+    # Debugging
+    print("\nTermination breakdown over all episodes:")
+    for reason, count in termination_counter.items():
+       print(f"  {reason}: {count} ({count / NUM_EPISODES:.1%})")
 
 # ================================================
 #                   ENTRY POINT
