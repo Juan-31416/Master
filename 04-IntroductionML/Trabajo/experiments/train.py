@@ -5,10 +5,9 @@ This script:
 - Initializes the environment and agent
 - Runs the training loop for a specified number of episodes
 - Logs training metrics (reward, steps, termination reason)
-- Saves teh trained Q-table periodically and at the end
+- Saves the trained Q-table periodically and at the end
 """
 
-from sqlite3.dbapi2 import Timestamp
 import sys
 sys.path.insert(0, '../')
 
@@ -36,11 +35,13 @@ from config.graphs import (
 )
 from collections import Counter
 
-termination_counter = Counter() # For debugging purposses
+termination_counter = Counter()  # For debugging purposes
  
 # ===================================================
 #               TRAINING CONFIGURATION
 # ===================================================
+
+USE_TOY_GRAPH = False
 
 # Agent hyperparameters
 ALPHA = 0.1             # Learning rate
@@ -75,59 +76,59 @@ def train():
     Main training loop for Q-learning agent.
     """
 
-    #Setup logging
+    # Determine graph name for file naming
+    graph_name = "toy" if USE_TOY_GRAPH else "plant"
+    
+    # Setup logging with graph-specific naming
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_path = LOGS_DIR / f"train_log_{timestamp}.csv"
+    log_path = LOGS_DIR / f"train_log_{graph_name}_{timestamp}.csv"
     logger = setup_logging(log_path)
 
     print("=" * 80)
     print("Q-LEARNING ROUTING AGENT - TRAINING")
     print("=" * 80)
+    print(f"\nGraph: {graph_name.upper()}")
     print(f"\nConfiguration:")
-    print(f" Episodes: {NUM_EPISODES}")
-    print(f" Max steps per episode: {MAX_STEPS}")
-    print(f" Learning rate (α): {ALPHA}")
-    print(f" Discount factor (γ): {GAMMA}")
+    print(f"  Episodes: {NUM_EPISODES}")
+    print(f"  Max steps per episode: {MAX_STEPS_TOY if USE_TOY_GRAPH else MAX_STEPS}")
+    print(f"  Learning rate (α): {ALPHA}")
+    print(f"  Discount factor (γ): {GAMMA}")
     print(f"  Exploration: ε={EPSILON_START} → {EPSILON_MIN} (decay={EPSILON_DECAY})")
-    print(f" Random seed: {SEED}")
+    print(f"  Random seed: {SEED}")
     print(f"\nReward parameters:")
     for key, value in REWARD_PARAMS_DEFAULT.items():
-        print(f"\n {key}: {value}")
+        print(f"  {key}: {value}")
     print(f"\nLog file: {log_path}")
     print("=" * 80)
     print()
 
-    # Initialize toy env
-    """
-    env = RoutingEnv(
-        graph=GRAPH_TOY,
-        node_roles=NODE_ROLES_TOY,
-        reward_params=REWARD_PARAMS_DEFAULT,
-        max_steps=MAX_STEPS_TOY,
-        start_candidates=DEFAULT_START_CANDIDATES_TOY,
-        pickup_candidates=DEFAULT_PICKUP_CANDIDATES_TOY,
-        drop_candidates=DEFAULT_DROP_CANDIDATES_TOY,
-        queue_sampling="uniform",
-        seed=SEED,
-    )
-    """
-
-    # Initiallize environment
-    
-    env = RoutingEnv(
-        graph=GRAPH_PLANT,
-        node_roles=NODE_ROLES_PLANT,
-        reward_params=REWARD_PARAMS_DEFAULT,
-        max_steps=MAX_STEPS,
-        start_candidates=DEFAULT_START_CANDIDATES,
-        pickup_candidates=DEFAULT_PICKUP_CANDIDATES,
-        drop_candidates=DEFAULT_DROP_CANDIDATES,
-        queue_sampling="uniform",
-        seed=SEED,
-        penalize_revisits=True,
-        revisit_penalty_factor=-2.0,
-    )
-    
+    # Initialize environment based on USE_TOY_GRAPH
+    if USE_TOY_GRAPH:
+        env = RoutingEnv(
+            graph=GRAPH_TOY,
+            node_roles=NODE_ROLES_TOY,
+            reward_params=REWARD_PARAMS_DEFAULT,
+            max_steps=MAX_STEPS_TOY,
+            start_candidates=DEFAULT_START_CANDIDATES_TOY,
+            pickup_candidates=DEFAULT_PICKUP_CANDIDATES_TOY,
+            drop_candidates=DEFAULT_DROP_CANDIDATES_TOY,
+            queue_sampling="uniform",
+            seed=SEED,
+        )
+    else:
+        env = RoutingEnv(
+            graph=GRAPH_PLANT,
+            node_roles=NODE_ROLES_PLANT,
+            reward_params=REWARD_PARAMS_DEFAULT,
+            max_steps=MAX_STEPS,
+            start_candidates=DEFAULT_START_CANDIDATES,
+            pickup_candidates=DEFAULT_PICKUP_CANDIDATES,
+            drop_candidates=DEFAULT_DROP_CANDIDATES,
+            queue_sampling="uniform",
+            seed=SEED,
+            penalize_revisits=True,
+            revisit_penalty_factor=-2.0,
+        )
 
     # Initialize agent
     agent = QLearningAgent(
@@ -153,6 +154,7 @@ def train():
         done = False
         episode_reward = 0.0
         step_count = 0
+        success_flag = False
 
         # Episode loop
         while not done:
@@ -163,11 +165,11 @@ def train():
             # Take step
             next_state, reward, done, info = env.step(action)
 
-            # Get valid actions for net state (for Q-learnig update)
+            # Get valid actions for next state (for Q-learning update)
             if not done:
                 next_valid_actions = env.get_valid_actions()
             else:
-                next_valid_actions= []
+                next_valid_actions = []
             
             # Update Q-table
             agent.update(state, action, reward, next_state, next_valid_actions, done)
@@ -177,20 +179,19 @@ def train():
             episode_reward += reward
             step_count += 1
         
+        termination_reason = info.get("termination_reason", "unknown")
+        if termination_reason == "success":
+            success_flag = True
        
-
         # Store metrics
         episode_rewards.append(episode_reward)
         episode_steps.append(step_count)
-        termination_reason = info.get("termination_reason", "unknown")
+        episode_terminations.append(termination_reason)
+        termination_counter[termination_reason] += 1
 
         if episode <= 10 or episode % 100 == 0:
             print(f"Ep {episode}: start={env.start_node}, pickup={env.pickup_node}, drop={env.drop_node}, "
-                f"reward={episode_reward:.1f}, steps={step_count}, reason={termination_reason}")
-
-        termination_reason = info.get("termination_reason", "unknown")
-        episode_terminations.append(termination_reason)
-        termination_counter[termination_reason] += 1
+                  f"reward={episode_reward:.1f}, steps={step_count}, reason={termination_reason}")
 
         # Decay epsilon after episode
         agent.decay_epsilon()
@@ -203,6 +204,7 @@ def train():
             steps=step_count,
             termination_reason=termination_reason,
             epsilon=agent.epsilon,
+            success=success_flag,
         )
 
         # Print progress
@@ -216,14 +218,14 @@ def train():
                 epsilon=agent.epsilon,
             )
 
-        # Save Q-table periodically
+        # Save Q-table periodically with graph-specific naming
         if episode % SAVE_EVERY == 0:
-            save_path = MODELS_DIR / f"q_table_episode_{episode}.pkl"
+            save_path = MODELS_DIR / f"q_table_{graph_name}_episode_{episode}_{timestamp}.pkl"
             agent.save(str(save_path))
             print(f"  → Model saved: {save_path.name}")
 
-    # Final save
-    final_save_path = MODELS_DIR / f"q_table_final_{timestamp}.pkl"
+    # Final save with graph-specific naming
+    final_save_path = MODELS_DIR / f"q_table_{graph_name}_final_{timestamp}.pkl"
     agent.save(str(final_save_path))
 
     print("\n" + "=" * 80)
@@ -233,17 +235,17 @@ def train():
     stats = agent.get_stats()
     for key, value in stats.items():
         if isinstance(value, float):
-            print(f" {key}: {value:.4f}")
+            print(f"  {key}: {value:.4f}")
         else:
-            print(f" {key}: {value}")
-    print(f"Final model saved: {final_save_path}")
+            print(f"  {key}: {value}")
+    print(f"\nFinal model saved: {final_save_path}")
     print(f"Training log saved: {log_path}")
     print("\n" + "=" * 80)
 
     # Debugging
     print("\nTermination breakdown over all episodes:")
     for reason, count in termination_counter.items():
-       print(f"  {reason}: {count} ({count / NUM_EPISODES:.1%})")
+        print(f"  {reason}: {count} ({count / NUM_EPISODES:.1%})")
 
 # ================================================
 #                   ENTRY POINT
