@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slide 15 – MPC Controller</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#F2F4EC;
+  --surface:#E6EAD9;
+  --panel:#2E3B2A;
+  --fg:#26311F;
+  --muted:#55624A;
+  --faint:#82907A;
+  --accent:#A4C05B;
+  --accent2:#B4552D;
+  --on-dark:#F2F4EC;
+  --on-accent:#26311F;
+  --grid:#D8DEC8;
+  --font-display:'Space Grotesk','Segoe UI',sans-serif;
+  --font-body:'Inter','Segoe UI',Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+p,h1,h2,h3,h4,h5,h6{margin:0;}
+body{margin:0;overflow:hidden;}
+.slide{
+  width:1920px;height:1080px;position:relative;overflow:hidden;
+  background:var(--bg);color:var(--fg);font-family:var(--font-body);
+  display:flex;flex-direction:column;padding:52px 96px 68px 96px;
+}
+header{flex:none;display:flex;justify-content:space-between;align-items:flex-end;gap:48px;}
+.eyebrow{font-family:var(--font-body);font-size:22px;font-weight:600;letter-spacing:0.4em;text-transform:uppercase;color:var(--accent);}
+.title{font-family:var(--font-display);font-weight:700;font-size:62px;line-height:1.04;letter-spacing:-0.01em;color:var(--fg);margin-top:10px;}
+.subtitle{font-family:var(--font-body);font-size:24px;line-height:1.34;color:var(--muted);text-align:right;max-width:480px;}
+.body{flex:1;min-height:0;display:flex;gap:40px;margin-top:32px;}
+/* Left: two stacked cards */
+.left-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:20px;}
+.card{background:var(--surface);border-radius:18px;padding:24px 28px;}
+.card.dark{background:var(--panel);}
+.card-title{font-family:var(--font-display);font-weight:700;font-size:28px;color:var(--accent);margin-bottom:12px;}
+.card-title.light{color:var(--on-dark);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 28px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 20px;}
+.kv{display:flex;flex-direction:column;gap:2px;}
+.kv-key{font-family:var(--font-body);font-size:20px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:0.08em;}
+.kv-key.light{color:#82907A;}
+.kv-val{font-family:var(--font-display);font-weight:700;font-size:26px;color:var(--fg);line-height:1.1;}
+.kv-val.light{color:var(--on-dark);}
+.kv-sub{font-family:var(--font-body);font-size:21px;color:var(--muted);line-height:1.3;}
+.kv-sub.light{color:#B5C9A5;}
+.item-row{display:flex;gap:12px;align-items:flex-start;margin-top:8px;}
+.dot{flex:none;width:9px;height:9px;border-radius:50%;background:var(--accent);margin-top:9px;}
+.dot.alt{background:var(--accent2);}
+.itext{flex:1;min-width:0;}
+.ilabel{font-family:var(--font-display);font-weight:700;font-size:24px;color:var(--fg);line-height:1.15;}
+.ilabel.light{color:var(--on-dark);}
+.idetail{font-family:var(--font-body);font-size:21px;color:var(--muted);line-height:1.3;margin-top:2px;}
+.idetail.light{color:#B5C9A5;}
+/* Right: MPC diagram + why MPC */
+.right-col{flex:0 0 680px;display:flex;flex-direction:column;gap:20px;}
+.diagram-card{background:var(--panel);border-radius:18px;padding:24px 28px;flex:1;min-height:0;display:flex;flex-direction:column;}
+.why-card{background:var(--surface);border-radius:18px;padding:20px 28px;}
+.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-top:8px;}
+.why-item{display:flex;gap:10px;align-items:flex-start;}
+.why-dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:8px;}
+.why-text{font-family:var(--font-body);font-size:22px;color:var(--muted);line-height:1.3;}
+.takeaway{flex:none;display:flex;align-items:flex-start;gap:18px;margin-top:16px;}
+.tk-mk{flex:none;width:40px;height:4px;background:var(--accent);margin-top:12px;}
+.takeaway p{font-family:var(--font-body);font-size:25px;line-height:1.28;color:var(--fg);}
+.footer{position:absolute;left:96px;right:96px;bottom:24px;display:flex;justify-content:space-between;align-items:center;padding-top:12px;font-family:var(--font-body);font-size:20px;letter-spacing:0.16em;text-transform:uppercase;color:var(--faint);}
+.foot-rule{position:absolute;top:0;left:0;right:0;height:1px;background:var(--faint);}
+.brand{color:var(--muted);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <header>
+    <div>
+      <p class="eyebrow">Hybrid Planning · Layer 3 — Control</p>
+      <h1 class="title">Model Predictive Control for Trajectory Tracking</h1>
+    </div>
+    <p class="subtitle">Kinematic bicycle model · 10–20 step horizon · 20–50 Hz update rate</p>
+  </header>
+
+  <div class="body">
+    <div class="left-col">
+      <!-- MPC Formulation -->
+      <div class="card">
+        <h2 class="card-title">MPC Formulation</h2>
+        <div class="grid2">
+          <div class="kv">
+            <p class="kv-key">Objective</p>
+            <p class="kv-val">Min tracking error + control effort + smoothness</p>
+          </div>
+          <div class="kv">
+            <p class="kv-key">Horizon</p>
+            <p class="kv-val">10 – 20 steps</p>
+            <p class="kv-sub">≈ 2 – 3 seconds look-ahead</p>
+          </div>
+          <div class="kv">
+            <p class="kv-key">Constraints</p>
+            <p class="kv-val">Steering · Velocity · Acceleration</p>
+            <p class="kv-sub">+ Collision avoidance from BEV map</p>
+          </div>
+          <div class="kv">
+            <p class="kv-key">Update Rate</p>
+            <p class="kv-val">20 – 50 Hz</p>
+            <p class="kv-sub">Real-time closed-loop control</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vehicle Model -->
+      <div class="card dark">
+        <h2 class="card-title light">Vehicle Model: Kinematic Bicycle</h2>
+        <div class="grid2">
+          <div class="kv">
+            <p class="kv-key light">State vector</p>
+            <p class="kv-val light">[x, y, θ, v]</p>
+            <p class="kv-sub light">Position · heading · speed</p>
+          </div>
+          <div class="kv">
+            <p class="kv-key light">Control inputs</p>
+            <p class="kv-val light">[δ, a]</p>
+            <p class="kv-sub light">Steering angle · acceleration</p>
+          </div>
+          <div class="kv">
+            <p class="kv-key light">Wheelbase</p>
+            <p class="kv-val light">L = 1.2 m</p>
+            <p class="kv-sub light">Typical compact agricultural robot</p>
+          </div>
+          <div class="kv">
+            <p class="kv-key light">Discretization</p>
+            <p class="kv-val light">Δt = 0.1 s</p>
+            <p class="kv-sub light">Euler integration per step</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <!-- MPC Loop Diagram -->
+      <div class="diagram-card">
+        <h2 class="card-title light">MPC Control Loop</h2>
+        <div style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding-top:8px;">
+          <svg viewBox="0 0 580 360" style="width:100%;max-height:280px;" xmlns="https://cdn.abacus.ai/images/9f864e18-c82f-4c92-a4f5-6720c3d1b396.jpg">
+            <!-- Reference trajectory -->
+            <rect x="10" y="140" width="130" height="52" rx="10" fill="#3E4F39"/>
+            <text x="75" y="161" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="17" fill="#A4C05B">Reference</text>
+            <text x="75" y="182" text-anchor="middle" font-family="Inter" font-size="15" fill="#B5C9A5">Trajectory</text>
+            <line x1="140" y1="166" x2="175" y2="166" stroke="#A4C05B" stroke-width="2" marker-end="url(#arr)"/>
+            <!-- MPC Optimizer -->
+            <rect x="175" y="110" width="150" height="112" rx="12" fill="#A4C05B"/>
+            <text x="250" y="145" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="18" fill="#1A2A16">MPC</text>
+            <text x="250" y="168" text-anchor="middle" font-family="Inter" font-size="14" fill="#26311F">Optimizer</text>
+            <text x="250" y="190" text-anchor="middle" font-family="Inter" font-size="13" fill="#26311F">Horizon: N steps</text>
+            <text x="250" y="208" text-anchor="middle" font-family="Inter" font-size="13" fill="#26311F">Solve at 20-50 Hz</text>
+            <!-- Arrow to vehicle -->
+            <line x1="325" y1="166" x2="370" y2="166" stroke="#A4C05B" stroke-width="2" marker-end="url(#arr)"/>
+            <!-- Vehicle -->
+            <rect x="370" y="130" width="120" height="72" rx="10" fill="#3E4F39"/>
+            <text x="430" y="158" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="17" fill="#A4C05B">Vehicle</text>
+            <text x="430" y="180" text-anchor="middle" font-family="Inter" font-size="14" fill="#B5C9A5">[δ, a] applied</text>
+            <!-- Feedback arrow -->
+            <path d="M490 202 Q490 300 250 300 Q130 300 130 202" stroke="#B4552D" stroke-width="2" fill="none" stroke-dasharray="6,4" marker-end="url(#arr2)"/>
+            <text x="310" y="322" text-anchor="middle" font-family="Inter" font-size="14" fill="#B4552D">State feedback [x, y, θ, v]</text>
+            <!-- BEV constraints -->
+            <rect x="175" y="30" width="150" height="52" rx="10" fill="#4A3020"/>
+            <text x="250" y="53" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="16" fill="#E8885A">BEV Obstacles</text>
+            <text x="250" y="72" text-anchor="middle" font-family="Inter" font-size="13" fill="#D4A080">Collision constraints</text>
+            <line x1="250" y1="82" x2="250" y2="110" stroke="#B4552D" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arr2)"/>
+            <!-- Arrow markers -->
+            <defs>
+              <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L8,3 z" fill="#A4C05B"/>
+              </marker>
+              <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L8,3 z" fill="#B4552D"/>
+              </marker>
+            </defs>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Why MPC -->
+      <div class="why-card">
+        <h2 style="font-family:var(--font-display);font-weight:700;font-size:26px;color:var(--fg);">Why MPC?</h2>
+        <div class="why-grid">
+          <div class="why-item"><div class="why-dot"></div><p class="why-text">Handles constraints explicitly (steering, velocity, collisions)</p></div>
+          <div class="why-item"><div class="why-dot"></div><p class="why-text">Real-time optimization within tight compute budget</p></div>
+          <div class="why-item"><div class="why-dot"></div><p class="why-text">Smooth, feasible control outputs — no abrupt actuator jumps</p></div>
+          <div class="why-item"><div class="why-dot"></div><p class="why-text">Formal safety guarantees via constraint satisfaction</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="takeaway">
+    <div class="tk-mk"></div>
+    <p>MPC closes the loop: the local planner selects the best trajectory, MPC tracks it precisely while enforcing all physical and safety constraints at 20–50 Hz.</p>
+  </div>
+
+  <div class="footer">
+    <div class="foot-rule"></div>
+    <p class="brand">Hybrid BEV Navigation · TFM 2026</p>
+    <p>Slide 15 / 25</p>
+  </div>
+</div>
+<style id="cf-contrast-fix">body > div:nth-child(1) > header:nth-child(1) > div:nth-child(1) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > h2:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(3) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(4) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > svg:nth-child(1) > text:nth-child(2){color:#FFFFFF !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > svg:nth-child(1) > text:nth-child(3){color:#FFFFFF !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > svg:nth-child(1) > text:nth-child(12){color:#FFFFFF !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > svg:nth-child(1) > text:nth-child(13){color:#FFFFFF !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > svg:nth-child(1) > text:nth-child(15){color:#FFFFFF !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > svg:nth-child(1) > text:nth-child(17){color:#FFFFFF !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(2) > svg:nth-child(1) > text:nth-child(18){color:#FFFFFF !important;}</style></body>
+</html>

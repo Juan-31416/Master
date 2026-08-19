@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#F2F4EC;
+  --surface:#E6EAD9;
+  --panel:#2E3B2A;
+  --fg:#26311F;
+  --muted:#55624A;
+  --faint:#82907A;
+  --accent:#A4C05B;
+  --accent2:#B4552D;
+  --on-dark:#F2F4EC;
+  --on-accent:#26311F;
+  --grid:#D8DEC8;
+  --font-display:'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-body:'Inter', 'Segoe UI', Arial, sans-serif;
+}
+/* base.css — shared by every ppt_templates slide; the renderer inlines this into
+   each finished N.html so the output is fully self-contained (no runtime reference
+   to the template library).
+
+   Contains ONLY the layout contract + the design-variable-driven canvas. It declares
+   NO colour or font VALUES — those come from the palette :root block the renderer
+   injects. base.css = shared rules; palette = the values; template = the layout.
+
+   Design-variable contract (every palette defines all 13; templates use ONLY these):
+     --bg            slide canvas background (.slide)
+     --surface       raised/alternate surface (cards, zebra rows)
+     --panel         dark panel/scrim fill — pair its text with --on-dark
+     --fg            primary text on --bg
+     --muted         secondary body text
+     --faint         tertiary text, captions, subdued labels
+     --accent        primary accent (rules, markers, key highlights)
+     --accent2       secondary accent (emphasis / turning-point highlights)
+     --on-dark       text placed on --panel / dark fills
+     --on-accent     text placed on --accent fills
+     --grid          hairline dividers, rails, separators
+     --font-display  headline font stack
+     --font-body     body/label font stack
+
+   Export-safety notes (the PPTX exporter only extracts text inside <p>/<h1>-<h6>):
+   1. The margin reset is LOAD-BEARING. Browser default margins on <p>/<h*> silently
+      add ~440px of height on dense slides, which both pushes content off the 1080px
+      canvas AND inflates documentElement.scrollHeight so the slide-background
+      detector drops the background (white slide). Zeroing them kills that bug class
+      for every template at once.
+   2. The slide background lives on .slide (the root container), never on <body>. */
+
+*{margin:0;padding:0;box-sizing:border-box;}
+p,h1,h2,h3,h4,h5,h6{margin:0;}
+body{margin:0;overflow:hidden;}
+
+.slide{
+  width:1920px;
+  height:1080px;
+  position:relative;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:var(--font-body);
+}
+
+/* ---- v2 shared utilities (token-only; opt-in by the newer color-blocked templates) ---- */
+/* Color-blocked panels — SOLID fills only. The exporter maps a background <div> to a filled
+   PPTX shape (gradients are avoided by convention). Pair each fill with its readable text
+   token so contrast survives on both light and dark presets. */
+.block-surface{background:var(--surface);color:var(--fg);}
+.block-panel,.block-dark{background:var(--panel);color:var(--on-dark);}
+.block-accent{background:var(--accent);color:var(--on-accent);}
+.block-accent2{background:var(--accent2);color:var(--on-accent);}
+
+/* Inline-SVG icons: render_icon emits <svg class="icon"> with a LITERAL-hex stroke and explicit
+   width/height attrs (viewBox 0 0 24 24, so stroke scales with size). This rule only guarantees
+   clean block layout with no inline-baseline gap; color comes from the baked stroke. */
+.icon{display:block;flex:none;}
+
+/* IMG FAILURE — a resolved URL can still 404 at EXPORT time (hotlink 403, CDN miss). Without
+   this a broken <img> paints its alt text plus the UA's broken-file glyph into the slide; one
+   deck shipped an image query slug as visible body copy. Degrade to an empty panel instead. */
+img{ font-size:0; color:transparent; }
+
+/* FOOTER — a one-line strip whose hairline (.foot-rule) hangs at the box TOP while the box is
+   anchored at the slide bottom, so any growth is UPWARD, into body copy. Worst-case footer text
+   fits 1680px with ~6px to spare under Inter; the wider-bodied Work Sans palettes tipped it into
+   a wrap, doubling the strip and driving the rule through 3 templates' text. Slot text therefore
+   never wraps (ellipsize the overflow — the exporter still gets the full text), and the line
+   height is pinned so the rule's y no longer moves with the palette's font metrics. */
+.footer{ line-height:1.2; }
+.footer [data-slot]{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+
+.slide{ display:flex; flex-direction:column; padding:64px 96px 80px 96px; }
+
+/* ---------- Header ---------- */
+header{ flex:none; }
+.eyebrow{ font-family:var(--font-body); font-size:22px; font-weight:600; letter-spacing:0.4em; text-transform:uppercase; color:var(--accent); }
+.title{ font-family:var(--font-display); font-weight:700; font-size:74px; line-height:1.02; letter-spacing:-0.01em; color:var(--fg); margin-top:12px; }
+.subtitle{ font-family:var(--font-body); font-size:26px; line-height:1.34; color:var(--muted); margin-top:14px; max-width:1400px; }
+
+/* ---------- Body: chart + optional stat sidebar ---------- */
+.body{ display:flex; gap:56px; align-items:stretch; flex:1; min-height:0; margin-top:36px; }
+.chart-col{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; justify-content:center; }
+
+.chart-wrap{ position:relative; width:100%; max-width:1000px; aspect-ratio:5/3; margin:0 auto; }
+.chart-wrap svg{ position:absolute; inset:0; width:100%; height:100%; }
+
+/* Overlay labels (computed positions, %-based) */
+.clab{ position:absolute; font-family:var(--font-body); white-space:nowrap; }
+.cval{ font-weight:700; font-size:28px; color:var(--fg); }
+.ccat{ font-size:26px; color:var(--muted); }
+.ccat-r{ font-size:26px; color:var(--muted); text-align:right; transform:translate(-100%,-50%) !important; }
+.cval-l{ font-weight:700; font-size:28px; color:var(--fg); transform:translate(0,-50%) !important; }
+.cbig{ font-family:var(--font-display); font-weight:700; font-size:90px; line-height:1; color:var(--accent); }
+.ccap{ font-size:28px; color:var(--muted); }
+
+/* Donut legend (only present for donut) */
+.legend{ display:flex; flex-wrap:wrap; justify-content:center; gap:16px 34px; margin-top:24px; }
+.legend:empty{ display:none; }
+.leg-row{ display:flex; align-items:center; gap:12px; font-family:var(--font-body); font-size:24px; color:var(--muted); }
+.leg-sw{ width:20px; height:20px; border-radius:5px; flex:none; }
+.leg-val{ font-weight:700; color:var(--fg); }
+
+/* ---------- Stat sidebar ---------- */
+/* Three max-capacity cards overflowed this band by 88px, unseen by the 1080 gate because a centred
+   flex column overflows symmetrically (and by the footer gate, which only sees the slide's extent).
+   Type and padding are sized so three worst-case cards fit; min-height:0 lets a card shrink to its
+   share of the band instead of forcing the column past it. Verified by TestPixelFit's
+   no-internal-container-overflow case across all 18 palettes. */
+.stats-col{ flex:0 0 480px; display:flex; flex-direction:column; justify-content:center; gap:18px; min-width:0; }
+.stats-col:empty{ display:none; }
+.stat-card{ background:var(--surface); border:2px solid var(--grid); border-radius:22px; padding:var(--sc-pad,30px) 32px; display:flex; flex-direction:column; justify-content:center; min-height:0; }
+.sc-val{ font-family:var(--font-display); font-weight:700; font-size:var(--sc-val,66px); line-height:1.05; letter-spacing:-0.01em; color:var(--accent); display:flex; align-items:baseline; flex-wrap:wrap; column-gap:10px; }
+.sc-unit{ font-family:var(--font-body); font-weight:600; font-size:28px; letter-spacing:0; color:var(--muted); }
+.sc-label{ font-family:var(--font-body); font-size:var(--sc-label,25px); line-height:1.28; color:var(--muted); margin-top:10px; }
+
+/* ---------- Takeaway ---------- */
+.takeaway{ flex:none; display:flex; align-items:center; gap:20px; margin-top:28px; font-family:var(--font-body); font-size:27px; line-height:1.3; color:var(--fg); }
+.takeaway .mk{ flex:none; width:44px; height:6px; background:var(--accent); }
+
+/* ---------- Footer ---------- */
+.footer{ position:absolute; left:120px; right:120px; bottom:30px; display:flex; justify-content:space-between; align-items:center; padding-top:13px; font-family:var(--font-body); font-size:20px; letter-spacing:0.16em; text-transform:uppercase; color:var(--faint); }
+.footer .foot-rule{ position:absolute; top:0; left:0; right:0; height:1px; background:var(--faint); }
+.footer .brand{ color:var(--muted); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="slide">
+
+  <header>
+    <p class="eyebrow" data-slot="eyebrow">Implementación</p>
+    <h1 class="title" data-slot="title">Stack software y frecuencias por módulo</h1>
+    <p class="subtitle" data-slot="subtitle">ROS2 Humble, PyTorch 2.0+ y contenedores Docker sobre Ubuntu 22.04</p>
+  </header>
+
+  <div class="body">
+    <div class="chart-col">
+      <div class="chart-wrap ck-bar" data-slot="chart_data">
+        <svg viewBox="0 0 1000 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+<line x1="70.0" y1="402.5" x2="940.0" y2="402.5" stroke="#D8DEC8" stroke-width="1"/>
+<line x1="70.0" y1="285.0" x2="940.0" y2="285.0" stroke="#D8DEC8" stroke-width="1"/>
+<line x1="70.0" y1="167.5" x2="940.0" y2="167.5" stroke="#D8DEC8" stroke-width="1"/>
+<line x1="70.0" y1="50.0" x2="940.0" y2="50.0" stroke="#D8DEC8" stroke-width="1"/>
+<line x1="70.0" y1="520.0" x2="940.0" y2="520.0" stroke="#D8DEC8" stroke-width="2"/>
+<rect x="109.2" y="285.0" width="95.7" height="235.0" rx="6" fill="#A4C05B"/>
+<rect x="283.1" y="496.5" width="95.7" height="23.5" rx="6" fill="#A4C05B"/>
+<rect x="457.1" y="285.0" width="95.7" height="235.0" rx="6" fill="#A4C05B"/>
+<rect x="631.1" y="50.0" width="95.7" height="470.0" rx="6" fill="#D1DFAC"/>
+<rect x="805.1" y="402.5" width="95.7" height="117.5" rx="6" fill="#A4C05B"/>
+</svg>
+        <span class="clab cval" style="position:absolute;left:15.7%;top:43.5%;transform:translate(-50%,-50%);">10 Hz</span><span class="clab ccat" style="position:absolute;left:15.7%;top:89.33%;transform:translate(-50%,-50%);width:16.2%;transform:translate(-50%,0);white-space:normal;text-align:center;line-height:1.15;font-size:26px;">BEV Transformer</span><span class="clab cval" style="position:absolute;left:33.1%;top:78.75%;transform:translate(-50%,-50%);">1 Hz</span><span class="clab ccat" style="position:absolute;left:33.1%;top:89.33%;transform:translate(-50%,-50%);width:16.2%;transform:translate(-50%,0);white-space:normal;text-align:center;line-height:1.15;font-size:26px;">Planif. global</span><span class="clab cval" style="position:absolute;left:50.5%;top:43.5%;transform:translate(-50%,-50%);">10 Hz</span><span class="clab ccat" style="position:absolute;left:50.5%;top:89.33%;transform:translate(-50%,-50%);width:16.2%;transform:translate(-50%,0);white-space:normal;text-align:center;line-height:1.15;font-size:26px;">Planif. local (máx.)</span><span class="clab cval" style="position:absolute;left:67.9%;top:4.33%;transform:translate(-50%,-50%);">20 Hz</span><span class="clab ccat" style="position:absolute;left:67.9%;top:89.33%;transform:translate(-50%,-50%);width:16.2%;transform:translate(-50%,0);white-space:normal;text-align:center;line-height:1.15;font-size:26px;">MPC (máx.)</span><span class="clab cval" style="position:absolute;left:85.3%;top:63.08%;transform:translate(-50%,-50%);">5 Hz</span><span class="clab ccat" style="position:absolute;left:85.3%;top:89.33%;transform:translate(-50%,-50%);width:16.2%;transform:translate(-50%,0);white-space:normal;text-align:center;line-height:1.15;font-size:26px;">Pipeline cerrado</span>
+      </div>
+      <div class="legend"></div>
+    </div>
+    <aside class="stats-col" style="--sc-val:66px;--sc-label:25px;--sc-pad:30px;"><div class="stat-card"><p class="sc-val"><span data-slot="stats.0.value">Humble</span></p><p class="sc-label" data-slot="stats.0.label">ROS2 como middleware; registro con rosbag2</p></div><div class="stat-card"><p class="sc-val"><span data-slot="stats.1.value">2.0+</span></p><p class="sc-label" data-slot="stats.1.label">PyTorch, torchvision y segmentation-models</p></div><div class="stat-card"><p class="sc-val"><span data-slot="stats.2.value">pytest</span></p><p class="sc-label" data-slot="stats.2.label">Tests de métricas, swaths y compuerta</p></div></aside>
+  </div>
+
+  <div class="takeaway"><div class="mk"></div><span data-slot="takeaway">Cada capa corre a su propio ritmo; el identificador de cultivo opera de forma asíncrona</span></div>
+
+  
+  <div class="footer">
+    <div class="foot-rule"></div>
+    <span class="brand" data-slot="footer_left">Navegación Autónoma en BEV</span>
+    <span data-slot="footer_right">2026</span>
+  </div>
+  
+
+</div>
+<style id="cf-contrast-fix">body > div:nth-child(1) > header:nth-child(1) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > div:nth-child(2) > aside:nth-child(2) > div:nth-child(1) > p:nth-child(1) > span:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > div:nth-child(2) > aside:nth-child(2) > div:nth-child(2) > p:nth-child(1) > span:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > div:nth-child(2) > aside:nth-child(2) > div:nth-child(3) > p:nth-child(1) > span:nth-child(1){color:#111111 !important;}</style></body>
+</html>

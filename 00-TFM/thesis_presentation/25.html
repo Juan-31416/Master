@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gracias</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#F2F4EC;
+  --surface:#E6EAD9;
+  --panel:#2E3B2A;
+  --fg:#26311F;
+  --muted:#55624A;
+  --faint:#82907A;
+  --accent:#A4C05B;
+  --accent2:#B4552D;
+  --on-dark:#F2F4EC;
+  --on-accent:#26311F;
+  --grid:#D8DEC8;
+  --font-display:'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-body:'Inter', 'Segoe UI', Arial, sans-serif;
+}
+
+/* base.css — shared by every ppt_templates slide; the renderer inlines this into
+   each finished N.html so the output is fully self-contained (no runtime reference
+   to the template library).
+
+   Contains ONLY the layout contract + the design-variable-driven canvas. It declares
+   NO colour or font VALUES — those come from the palette :root block the renderer
+   injects. base.css = shared rules; palette = the values; template = the layout.
+
+   Design-variable contract (every palette defines all 13; templates use ONLY these):
+     --bg            slide canvas background (.slide)
+     --surface       raised/alternate surface (cards, zebra rows)
+     --panel         dark panel/scrim fill — pair its text with --on-dark
+     --fg            primary text on --bg
+     --muted         secondary body text
+     --faint         tertiary text, captions, subdued labels
+     --accent        primary accent (rules, markers, key highlights)
+     --accent2       secondary accent (emphasis / turning-point highlights)
+     --on-dark       text placed on --panel / dark fills
+     --on-accent     text placed on --accent fills
+     --grid          hairline dividers, rails, separators
+     --font-display  headline font stack
+     --font-body     body/label font stack
+
+   Export-safety notes (the PPTX exporter only extracts text inside <p>/<h1>-<h6>):
+   1. The margin reset is LOAD-BEARING. Browser default margins on <p>/<h*> silently
+      add ~440px of height on dense slides, which both pushes content off the 1080px
+      canvas AND inflates documentElement.scrollHeight so the slide-background
+      detector drops the background (white slide). Zeroing them kills that bug class
+      for every template at once.
+   2. The slide background lives on .slide (the root container), never on <body>. */
+
+*{margin:0;padding:0;box-sizing:border-box;}
+p,h1,h2,h3,h4,h5,h6{margin:0;}
+body{margin:0;overflow:hidden;}
+
+.slide{
+  width:1920px;
+  height:1080px;
+  position:relative;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:var(--font-body);
+}
+
+/* ---- v2 shared utilities (token-only; opt-in by the newer color-blocked templates) ---- */
+/* Color-blocked panels — SOLID fills only. The exporter maps a background <div> to a filled
+   PPTX shape (gradients are avoided by convention). Pair each fill with its readable text
+   token so contrast survives on both light and dark presets. */
+.block-surface{background:var(--surface);color:var(--fg);}
+.block-panel,.block-dark{background:var(--panel);color:var(--on-dark);}
+.block-accent{background:var(--accent);color:var(--on-accent);}
+.block-accent2{background:var(--accent2);color:var(--on-accent);}
+
+/* Inline-SVG icons: render_icon emits <svg class="icon"> with a LITERAL-hex stroke and explicit
+   width/height attrs (viewBox 0 0 24 24, so stroke scales with size). This rule only guarantees
+   clean block layout with no inline-baseline gap; color comes from the baked stroke. */
+.icon{display:block;flex:none;}
+
+/* IMG FAILURE — a resolved URL can still 404 at EXPORT time (hotlink 403, CDN miss). Without
+   this a broken <img> paints its alt text plus the UA's broken-file glyph into the slide; one
+   deck shipped an image query slug as visible body copy. Degrade to an empty panel instead. */
+img{ font-size:0; color:transparent; }
+
+/* FOOTER — a one-line strip whose hairline (.foot-rule) hangs at the box TOP while the box is
+   anchored at the slide bottom, so any growth is UPWARD, into body copy. Worst-case footer text
+   fits 1680px with ~6px to spare under Inter; the wider-bodied Work Sans palettes tipped it into
+   a wrap, doubling the strip and driving the rule through 3 templates' text. Slot text therefore
+   never wraps (ellipsize the overflow — the exporter still gets the full text), and the line
+   height is pinned so the rule's y no longer moves with the palette's font metrics. */
+.footer{ line-height:1.2; }
+.footer [data-slot]{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+
+
+/* Dark closing slide: bookends the deck with the cover's panel treatment. Left-anchored against a
+   full-height accent rail so it reads as a designed endcap, not a lone cluster in a dark void. */
+.slide{
+  padding:76px 120px 104px 140px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  text-align:left;
+  background:var(--panel);
+  color:var(--on-dark);
+}
+
+/* full-height accent rail down the left edge — a persistent structural anchor (always renders,
+   independent of how much content the closer carries), so a short title never floats alone. */
+.rail{ position:absolute; top:0; bottom:0; left:0; width:16px; background:var(--accent); }
+
+/* Left-anchored hero group DISTRIBUTES down the full band (space-evenly): title block, takeaways
+   and contacts each claim their own zone instead of clustering with the bottom half of the slide
+   empty — the recurring judge complaint on closers. With one child it degrades to centered; with
+   max content the free space is zero and it packs, so distribution can never overflow. */
+.hero{ flex:1; min-height:0; width:100%; display:flex; flex-direction:column; align-items:flex-start;
+       justify-content:space-evenly; max-width:1680px; }
+
+.lead{ display:flex; flex-direction:column; align-items:flex-start; }
+
+.eyebrow{ font-family:var(--font-body); font-size:22px; font-weight:600; letter-spacing:0.4em; text-transform:uppercase; color:var(--accent); }
+
+/* short accent rule under the eyebrow (decorative filled div) */
+.kick-rule{ width:120px; height:3px; background:var(--accent); margin-top:18px; }
+
+/* Title scale is renderer-computed: a short closing line earns display size — the closer must
+   land as confidently as the cover. */
+.title{ font-family:var(--font-display); font-weight:700; font-size:var(--cta-title,72px); line-height:1.04; letter-spacing:-0.01em; color:var(--on-dark); margin-top:24px; }
+.title-em{ display:block; font-family:var(--font-display); font-style:italic; font-weight:600; font-size:44px; line-height:1.1; color:var(--accent); margin-top:10px; }
+
+.subtitle{ font-family:var(--font-body); font-size:28px; font-weight:400; line-height:1.38; color:var(--faint); margin-top:20px; max-width:1440px; }
+
+/* takeaways — a grid of outlined cards that CLAIMS the whole band between the title block and
+   the contacts (flex:1 + 1fr rows): 4 takeaways render as a 2x2 grid of squares, 3 as a row of
+   tall thirds, 2 as a pair of wide halves. Column count is renderer-computed. This replaced a
+   single thin row of 365px columns of 24px text — the recurring "small type in a dark void"
+   closer, with a dead band mid-slide. */
+.takeaways{ margin-top:24px; flex:1 1 auto; min-height:0; align-self:stretch; width:100%; max-width:1640px;
+            display:grid; grid-template-columns:repeat(var(--cta-cols,2),1fr);
+            grid-auto-rows:minmax(min-content,1fr); gap:18px 28px; }
+.takeaways:empty{ display:none; }
+.takeaway{ display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+           border:1px solid var(--grid); border-radius:16px; padding:18px 34px; }
+.takeaway .marker{ width:44px; height:6px; background:var(--accent); }
+.takeaway .t-head{ font-family:var(--font-display); font-weight:700; font-size:var(--cta-thead,34px); line-height:1.1; color:var(--on-dark); margin-top:10px; text-wrap:balance; }
+.takeaway .t-body{ font-family:var(--font-body); font-weight:400; font-size:var(--cta-tbody,27px); line-height:1.3; color:var(--faint); margin-top:8px; }
+
+/* contacts — small inline row */
+.contacts{ margin-top:20px; display:flex; justify-content:flex-start; align-items:center; flex-wrap:wrap; row-gap:14px; }
+.contacts:empty{ display:none; }
+.contact{ display:flex; align-items:center; }
+.contact .sep{ width:6px; height:6px; border-radius:50%; background:var(--accent); margin:0 26px; }
+.contact:first-child .sep{ display:none; }
+.contact .c-text{ font-family:var(--font-body); font-size:22px; font-weight:600; letter-spacing:0.06em; color:var(--accent); }
+
+/* footer */
+.footer{ position:absolute; left:120px; right:120px; bottom:30px; display:flex; justify-content:space-between; align-items:center; padding-top:13px; font-family:var(--font-body); font-size:20px; letter-spacing:0.16em; text-transform:uppercase; color:var(--faint); }
+.footer .foot-rule{ position:absolute; top:0; left:0; right:0; height:1px; background:var(--faint); }
+.footer .brand{ color:var(--on-dark); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="slide">
+
+  <div class="rail"></div>
+
+  <div class="hero">
+    <div class="lead">
+    <p class="eyebrow" data-slot="eyebrow">Defensa de Trabajo Fin de Máster</p><div class="kick-rule"></div>
+
+    <h1 class="title" data-slot="title" style="--cta-title:84px;">Gracias</h1>
+    <h2 class="title-em" data-slot="title_em">Preguntas del tribunal</h2>
+
+    <p class="subtitle" data-slot="subtitle">Una arquitectura modular compacta, verificable por partes y reproducible como base de campañas futuras.</p>
+    </div>
+
+    <section class="takeaways" style="--cta-cols:3;--cta-thead:36px;--cta-tbody:28px;">
+      <div class="takeaway">
+        <div class="marker"></div>
+        <h2 class="t-head" data-slot="takeaways.0.heading">Lo que queda demostrado</h2>
+        <p class="t-body" data-slot="takeaways.0.body">Las cuatro preguntas de investigación alcanzan sus umbrales en simulación con dos ConvEncoders y atención cruzada bidireccional.</p>
+      </div>
+    
+      <div class="takeaway">
+        <div class="marker"></div>
+        <h2 class="t-head" data-slot="takeaways.1.heading">Lo que queda abierto</h2>
+        <p class="t-body" data-slot="takeaways.1.body">La brecha simulación-realidad sigue abierta: sin validación en terreno agrícola real ni significancia estadística por falta de repeticiones.</p>
+      </div>
+    
+      <div class="takeaway">
+        <div class="marker"></div>
+        <h2 class="t-head" data-slot="takeaways.2.heading">Siguiente campaña</h2>
+        <p class="t-body" data-slot="takeaways.2.body">Validación de campo con verdad de terreno RTK-GNSS, ablación de modalidad cámara/LiDAR/fusión y caracterización de latencia en hardware embebido.</p>
+      </div>
+    </section>
+
+    <section class="contacts">
+      <div class="contact">
+        <div class="sep"></div>
+        <p class="c-text" data-slot="contacts.0">Pedro Canales</p>
+      </div>
+    
+      <div class="contact">
+        <div class="sep"></div>
+        <p class="c-text" data-slot="contacts.1">Máster en Inteligencia Artificial</p>
+      </div>
+    
+      <div class="contact">
+        <div class="sep"></div>
+        <p class="c-text" data-slot="contacts.2">19 de agosto de 2026</p>
+      </div>
+    </section>
+  </div>
+
+  <div class="footer">
+    <div class="foot-rule"></div>
+    <p class="brand" data-slot="footer_left">Navegación Autónoma Híbrida en BEV</p>
+    <p data-slot="footer_right">2026</p>
+  </div>
+
+</div>
+<style id="cf-fit">body > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > h1:nth-child(3){font-size:46.2px !important;}</style></body>
+</html>

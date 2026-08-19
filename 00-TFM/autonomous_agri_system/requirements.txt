@@ -1,0 +1,11 @@
+torch>=2.2.0
+torchvision>=0.17.0
+numpy>=1.24.0
+matplotlib>=3.8.0
+opencv-python>=4.8.0
+PyYAML>=6.0.0
+pandas>=2.0.0
+tqdm>=4.66.0
+segmentation-models-pytorch>=0.3.3
+pytest>=8.0.0
+jupyter>=1.0.0

@@ -1,0 +1,15 @@
+model:
+  num_classes: 5
+  encoder_name: efficientnet-b4
+  pretrained: true
+
+data:
+  dataset_root: data/agri_segmentation
+  image_size: [512, 512]
+
+train:
+  batch_size: 4
+  epochs: 40
+  lr: 0.0001
+  num_workers: 0
+  checkpoint_dir: checkpoints/identification

@@ -1,0 +1,1078 @@
+{
+  "deck_title": "Navegación Autónoma Híbrida en BEV",
+  "palette": "olive",
+  "slides": [
+    {
+      "template": "cover_split",
+      "content": {
+        "brand_text": "Máster en IA",
+        "chapter": "Defensa de Tesis de Máster",
+        "eyebrow": "Percepción BEV · Planificación híbrida",
+        "title": "Navegación Autónoma Híbrida en BEV",
+        "title_em": "con Optimización de Rutas para Seguimiento de Cultivos",
+        "subtitle": "Pedro Canales — Máster en IA. Arquitectura modular validada en simulación y prototipo: percepción, cobertura y salud del cultivo.",
+        "sections": [
+          {
+            "label": "Motivación"
+          },
+          {
+            "label": "Objetivos y estado"
+          },
+          {
+            "label": "Arquitectura"
+          },
+          {
+            "label": "Módulo BEV"
+          },
+          {
+            "label": "Planificación híbrida"
+          },
+          {
+            "label": "Visión agrícola"
+          },
+          {
+            "label": "Resultados y cierre"
+          }
+        ],
+        "meta_left": "Pedro Canales",
+        "meta_right": "2026"
+      },
+      "images": {
+        "hero": {
+          "query": "autonomous agricultural robot vehicle driving between crop rows in a field",
+          "aspect_ratio": "3:4",
+          "alt": "Vehículo agrícola autónomo circulando entre hileras de cultivo",
+          "url": "https://cdn.abacus.ai/images/4467b9b3-f9e2-4988-a66f-ee99dbde4205.jpg"
+        }
+      },
+      "objective": "Abrir la defensa con el título completo de la tesis, el autor, la institución y el recorrido del deck",
+      "reason": "Portada editorial con panel oscuro para los datos académicos y foto vertical de un vehículo agrícola autónomo"
+    },
+    {
+      "template": "numbered_ledger",
+      "content": {
+        "eyebrow": "Agenda de la defensa",
+        "title": "Recorrido de la presentación",
+        "subtitle": "De la motivación agrícola a los resultados en simulación y el trabajo futuro",
+        "items": [
+          {
+            "no": "01",
+            "label": "Motivación y problema",
+            "note": "Automatización agrícola y las cinco brechas sin sistema integrado validado.",
+            "pill": "Contexto"
+          },
+          {
+            "no": "02",
+            "label": "Objetivos y estado del arte",
+            "note": "RQ1–RQ4 con umbrales declarados; revisión de BEV y de planificación híbrida.",
+            "pill": "RQ1–RQ4"
+          },
+          {
+            "no": "03",
+            "label": "Arquitectura del sistema",
+            "note": "Pipeline modular de cinco capas con realimentación del mapa de salud.",
+            "pill": "5 capas"
+          },
+          {
+            "no": "04",
+            "label": "Los tres módulos",
+            "note": "BEV Transformer, planificación híbrida de tres capas y visión agrícola DeepLabV3+.",
+            "pill": "Núcleo técnico"
+          },
+          {
+            "no": "05",
+            "label": "Resultados y conclusiones",
+            "note": "Métricas en simulación, ablaciones pendientes, limitaciones y trabajo futuro.",
+            "pill": "Simulación"
+          }
+        ],
+        "footer_left": "Navegación Autónoma Híbrida BEV",
+        "footer_right": "2026"
+      },
+      "images": {},
+      "objective": "Presentar el recorrido de la defensa en cinco bloques numerados",
+      "reason": "Los puntos de agenda son una lista ordenada corta con nota y etiqueta por bloque"
+    },
+    {
+      "template": "image_feature",
+      "content": {
+        "eyebrow": "Motivación",
+        "title": "Cubrir el campo y vigilar el cultivo",
+        "body": "Cobertura total del campo y detección de anomalías son tareas separadas. Ningún sistema público las integra con percepción BEV en vehículo terrestre.",
+        "points": [
+          {
+            "heading": "Cobertura sin huecos",
+            "body": "Pasadas paralelas al ancho del apero, sin solapes ni huecos"
+          },
+          {
+            "heading": "Salud como coste de ruta",
+            "body": "Las zonas anómalas deben reorientar la ruta, no solo registrarse"
+          },
+          {
+            "heading": "Hardware embarcado",
+            "body": "Falta análisis BEV ligero para el cómputo de un prototipo"
+          }
+        ],
+        "caption": "Alcance: un vehículo, geometría de campo conocida y obstáculos estáticos",
+        "footer_left": "Navegación Autónoma Híbrida en BEV",
+        "footer_right": "2026"
+      },
+      "images": {
+        "feature": {
+          "query": "autonomous agricultural robot driving between crop rows in a green field",
+          "aspect_ratio": "3:4",
+          "alt": "Vehículo agrícola autónomo recorriendo hileras de cultivo",
+          "url": "https://cdn.abacus.ai/images/a59e0a78-daed-4d85-8079-764352f452f3.jpg"
+        }
+      },
+      "objective": "Enmarcar la motivación: la agricultura necesita cobertura autónoma y monitoreo continuo de salud del cultivo en un mismo vehículo",
+      "reason": "Una fotografía real de campo agrícola acompaña el planteamiento narrativo de la motivación sin necesidad de cifras inventadas"
+    },
+    {
+      "template": "detail_brief",
+      "content": {
+        "eyebrow": "Planteamiento del problema",
+        "title": "Cinco brechas sin sistema que las integre",
+        "subtitle": "Percepción BEV, cobertura híbrida y salud del cultivo siguen resolviéndose por separado",
+        "lead": "No existe un sistema público que integre percepción BEV multimodal, planificación híbrida de cobertura e identificación de salud del cultivo en una arquitectura validada. Cinco brechas motivan la tesis.",
+        "sections": [
+          {
+            "heading": "Ausencia de datos y benchmarks",
+            "body": "No hay benchmarks BEV agrícolas ni datasets desde vehículos terrestres. La percepción debe entrenarse con datos sintéticos de CARLA/Gazebo, sin referencia comparable publicada."
+          },
+          {
+            "heading": "Sin BEV ligero embebido",
+            "body": "No se ha analizado BEV ligero para hardware agrícola embebido: arquitecturas tipo BEVFormer o BEVFusion asumen presupuestos de cómputo muy superiores a los de una plataforma de campo."
+          },
+          {
+            "heading": "Cobertura y salud desacopladas",
+            "body": "No existe planificación de cobertura híbrida con monitoreo simultáneo de salud, ni integración BEV de salud del cultivo en vehículo terrestre: el mapa de salud no realimenta el coste de la ruta."
+          },
+          {
+            "heading": "Adaptación de dominio sin protocolo",
+            "body": "Faltan protocolos establecidos de adaptación de dominio para escenas agrícolas; el muestreo aleatorio de fotogramas infla la precisión frente a particiones por día de grabación."
+          }
+        ],
+        "takeaway": "Alcance: un vehículo, campo conocido, obstáculos estáticos; validación en simulación",
+        "footer_left": "Navegación autónoma híbrida en BEV",
+        "footer_right": "2026"
+      },
+      "images": {},
+      "objective": "Definir el problema: cinco brechas no cubiertas por ningún sistema publicado y el alcance declarado del trabajo",
+      "reason": "Contenido denso de párrafo (brechas y alcance) que necesita profundidad, no viñetas cortas"
+    },
+    {
+      "template": "quadrant_matrix",
+      "content": {
+        "eyebrow": "Objetivos de investigación",
+        "title": "Cuatro preguntas, cuatro umbrales",
+        "subtitle": "Cada RQ fija un criterio medible de éxito para su módulo del sistema",
+        "quadrants": [
+          {
+            "icon": "eye",
+            "label": "RQ1 · Percepción BEV",
+            "body": "¿Puede un BEV compacto de doble modalidad dar comprensión de escena suficiente para una cobertura segura?",
+            "tag": "mIoU > 0,70"
+          },
+          {
+            "icon": "workflow",
+            "label": "RQ2 · Planificación",
+            "body": "¿Boustrophedon + planificador lattice + MPC muestreado cumplen seguridad y seguimiento?",
+            "tag": "RMSE < 0,5 m"
+          },
+          {
+            "icon": "leaf",
+            "label": "RQ3 · Salud del cultivo",
+            "body": "¿Alcanza DeepLabV3+ la identificación de salud del cultivo dentro de los límites de recursos del prototipo?",
+            "tag": "mIoU > 0,70"
+          },
+          {
+            "icon": "gauge",
+            "label": "RQ4 · Tiempo real",
+            "body": "¿Sostiene el pipeline integrado una operación en lazo cerrado en tiempo real sobre el vehículo?",
+            "tag": "> 5 Hz"
+          }
+        ],
+        "takeaway": "Alcance: un vehículo, campo conocido, obstáculos estáticos, validación en simulación.",
+        "footer_left": "Navegación autónoma en BEV",
+        "footer_right": "2026"
+      },
+      "images": {},
+      "objective": "Presentar los objetivos de la tesis como cuatro preguntas de investigación con umbrales cuantitativos declarados",
+      "reason": "Son exactamente cuatro preguntas paralelas con su umbral, la forma natural de una matriz 2x2"
+    },
+    {
+      "template": "comparison_table",
+      "content": {
+        "eyebrow": "Revisión de literatura · Percepción BEV",
+        "title": "Estado del arte en BEV",
+        "subtitle": "Arquitecturas de referencia en conducción autónoma y su encaje con un vehículo agrícola",
+        "rule_cap": "Idoneidad agrícola",
+        "col1_label": "Arquitectura",
+        "col1_sub": "Referencia",
+        "col2_label": "Enfoque",
+        "col2_sub": "Cambio de vista",
+        "col3_label": "Modalidad",
+        "col3_sub": "Sensores de entrada",
+        "col4_label": "Encaje",
+        "col4_sub": "Uso en esta tesis",
+        "rows": [
+          {
+            "name": "BEVFormer",
+            "region": "Atención espaciotemporal",
+            "era": "Multiescala",
+            "value": "Cámara",
+            "known": "Inspira una arquitectura futura con más GPU."
+          },
+          {
+            "name": "BEVDet4D",
+            "region": "Fusión multi-frame",
+            "era": "Temporal",
+            "value": "Cámara",
+            "known": "Justifica una ablación temporal pendiente."
+          },
+          {
+            "name": "PETR",
+            "region": "Consultas de posición 3D",
+            "era": "Implícito",
+            "value": "Cámara",
+            "known": "Omite el LiDAR que ve los obstáculos bajos."
+          },
+          {
+            "name": "BEVFusion",
+            "region": "Fusión cámara-LiDAR",
+            "era": "Multimodal",
+            "value": "Cám.+LiDAR",
+            "known": "Fundamenta la ablación de modalidad prevista.",
+            "em": true
+          },
+          {
+            "name": "Prototipo tesis",
+            "region": "Dos ConvEncoders",
+            "era": "Atención cruzada",
+            "value": "Cám.+LiDAR",
+            "known": "Genera una rejilla BEV 200x200 a 10 Hz."
+          }
+        ],
+        "source": "Brechas detectadas: no existe un benchmark BEV agrícola ni un análisis de BEV ligero para hardware embebido.",
+        "brand": "Máster en IA"
+      },
+      "images": {},
+      "objective": "Situar el prototipo frente a las arquitecturas BEV de referencia y señalar las brechas agrícolas que ninguna cubre",
+      "reason": "Comparación de varios modelos a través de atributos consistentes: enfoque, modalidad e idoneidad agrícola"
+    },
+    {
+      "template": "capability_rows",
+      "content": {
+        "eyebrow": "Estado del arte · Planificación",
+        "title": "Enfoques de planificación y su idoneidad",
+        "subtitle": "La tesis combina lo clásico verificable con puntuación aprendida, evitando control extremo a extremo",
+        "rows": [
+          {
+            "icon": "workflow",
+            "name": "Boustrophedon (cobertura clásica)",
+            "body": "Descomposición celular en pasadas paralelas al ancho de trabajo del apero",
+            "stat_value": "1 Hz",
+            "stat_label": "Capa global adoptada"
+          },
+          {
+            "icon": "git-branch",
+            "name": "Lattice de trayectorias",
+            "body": "Candidatos discretos por velocidad y curvatura: seguro, acotado y auditable",
+            "stat_value": "20",
+            "stat_label": "Pasos de 0,2 s"
+          },
+          {
+            "icon": "brain",
+            "name": "Puntuación por aprendizaje (IL)",
+            "body": "Score ML combinado con coste clásico invertido en la capa local híbrida",
+            "stat_value": "0,65",
+            "stat_label": "Peso alfa del score ML"
+          },
+          {
+            "icon": "gauge",
+            "name": "MPC muestreado",
+            "body": "Bicicleta cinemática sin solver: rejilla de dirección y aceleración por ciclo",
+            "stat_value": "63",
+            "stat_label": "Candidatos por ciclo"
+          },
+          {
+            "icon": "clock",
+            "name": "Aprendizaje por refuerzo (SAC)",
+            "body": "Fuera del núcleo: solo en una envolvente segura verificada, como trabajo futuro",
+            "stat_value": "—",
+            "stat_label": "Trabajo futuro"
+          }
+        ],
+        "footer_left": "Navegación Autónoma Híbrida BEV",
+        "footer_right": "2026"
+      },
+      "images": {},
+      "objective": "Situar el estado del arte en planificación y justificar la selección híbrida de la tesis",
+      "reason": "Cada enfoque de planificación es un punto paralelo con su propio parámetro numérico, ideal para filas con estadística"
+    },
+    {
+      "template": "flow_chevrons",
+      "content": {
+        "eyebrow": "Arquitectura del sistema",
+        "title": "Pipeline modular de cinco capas",
+        "subtitle": "Dominios de fallo aislados y respaldos clásicos en las funciones críticas de seguridad",
+        "stages": [
+          {
+            "name": "Sensores y localización",
+            "body": "Dos cámaras RGB, LiDAR 3D e IMU/GNSS fusionados por EKF"
+          },
+          {
+            "name": "Percepción BEV",
+            "body": "Transformer a 10 Hz; rejilla 200x200 y mapa de ocupación"
+          },
+          {
+            "name": "Planificación híbrida",
+            "body": "Global 1 Hz, local 5-10 Hz y MPC 10-20 Hz sobre el mismo mapa"
+          },
+          {
+            "name": "ID de cultivo",
+            "body": "Módulo asíncrono: mapa de salud registrado en el marco BEV"
+          },
+          {
+            "name": "Registro y evaluación",
+            "body": "rosbag2 sobre ROS2 Humble, contenedores Docker en Ubuntu 22.04"
+          }
+        ],
+        "takeaway": "El mapa de salud realimenta al planificador global como modificador de coste de ruta",
+        "footer_left": "Navegación autónoma en BEV",
+        "footer_right": "2026"
+      },
+      "images": {},
+      "objective": "Presentar la arquitectura modular de cinco capas y su realimentación del mapa de salud",
+      "reason": "Cadena secuencial de izquierda a derecha entre cinco módulos: encaja con el flujo de chevrones"
+    },
+    {
+      "template": "image_band_stats",
+      "content": {
+        "eyebrow": "Módulo 1 · Percepción",
+        "title": "La vista cenital unifica cámaras y LiDAR en un mapa",
+        "band": {},
+        "stats": [
+          {
+            "icon": "layers",
+            "value": "200 × 200",
+            "label": "Rejilla BEV de 128 canales para ambas capas de planificación"
+          },
+          {
+            "icon": "gauge",
+            "value": "10 Hz",
+            "label": "Frecuencia del BEV Transformer, que alimenta al planificador"
+          },
+          {
+            "icon": "cpu",
+            "value": "2 + 1",
+            "label": "Dos cámaras RGB (1280×720) y un LiDAR 3D de 30–100 m fusionados"
+          },
+          {
+            "icon": "target",
+            "value": "4",
+            "label": "Salidas: ocupación, semántica de 6 clases, confianza y detección"
+          }
+        ],
+        "footer_left": "Navegación Autónoma Híbrida en BEV",
+        "footer_right": "2026"
+      },
+      "images": {
+        "band": {
+          "query": "aerial top down view of green crop field with parallel tractor rows",
+          "aspect_ratio": "3:1",
+          "alt": "Vista cenital de un campo de cultivo con hileras paralelas",
+          "url": "https://cdn.abacus.ai/images/bc806e51-d24e-4c6d-a427-cba8e77dfc0d.jpg"
+        }
+      },
+      "objective": "Explicar qué aporta la representación BEV a la percepción agrícola en campo abierto y con qué cifras opera",
+      "reason": "Una fotografía real de campo agrícola visto desde arriba sostiene el concepto de vista cenital, con las cifras clave del módulo como pie"
+    },
+    {
+      "template": "process_steps",
+      "content": {
+        "eyebrow": "Módulo 1 · BEV Transformer",
+        "title": "Diseño de la red BEV",
+        "subtitle": "Dos ConvEncoders paralelos, atención cruzada bidireccional y cuatro cabezas de salida",
+        "steps": [
+          {
+            "no": "01",
+            "name": "Encoder de cámara",
+            "detail": "ConvEncoder de 3 etapas sobre (B,3,H,W): mapa de características de 128 canales"
+          },
+          {
+            "no": "02",
+            "name": "Encoder LiDAR",
+            "detail": "LiDAR 3D rasterizado a rejilla BEV; ConvEncoder de 3 etapas a 128 canales"
+          },
+          {
+            "no": "03",
+            "name": "Fusión por atención cruzada",
+            "detail": "MultiheadAttention bidireccional de 8 cabezas + LayerNorm sobre flujos promediados"
+          },
+          {
+            "no": "04",
+            "name": "Rejilla BEV",
+            "detail": "Representación cenital de 200 x 200 celdas con 128 canales por celda"
+          },
+          {
+            "no": "05",
+            "name": "Cuatro cabezas de salida",
+            "detail": "Ocupación binaria, semántica de 6 clases, confianza y detección de 6 dimensiones"
+          }
+        ],
+        "footer_left": "Navegación Autónoma Híbrida en BEV",
+        "footer_right": "2026"
+      },
+      "images": {},
+      "objective": "Explicar el diseño interno de la red BEV: encoders duales, fusión por atención cruzada, rejilla y cabezas de salida",
+      "reason": "Es un mecanismo ordenado sin fechas: flujo de etapas de la red que se lee de arriba abajo"
+    },
+    {
+      "template": "mosaic_tiles",
+      "content": {
+        "eyebrow": "Módulo BEV · Entrenamiento",
+        "title": "Datos sintéticos y aleatorización de dominio",
+        "stat_value": "2.000",
+        "stat_label": "Pares sintéticos con máscaras de ocupación autoetiquetadas",
+        "points": [
+          {
+            "heading": "Generación en CARLA/Gazebo",
+            "body": "Aleatoriza iluminación, textura, ruido y polvo para acercar sintético al campo."
+          },
+          {
+            "heading": "Setup de entrenamiento",
+            "body": "256 px, batch 8, 8 épocas, Adam lr 3x10⁻⁴, semilla 42 reproducible."
+          }
+        ],
+        "takeaway": "Pérdidas combinadas: BCE+Focal en ocupación y CE+Dice en segmentación semántica.",
+        "footer_left": "Navegación Autónoma en BEV",
+        "footer_right": "2026"
+      },
+      "images": {
+        "photo": {
+          "query": "green crop rows in an open agricultural field seen from above",
+          "aspect_ratio": "3:4",
+          "alt": "Hileras de cultivo en un campo agrícola abierto",
+          "url": "https://cdn.abacus.ai/images/698291ce-438e-4dcd-aa60-d72f3b1bd99b.jpg",
+          "fit": "contain"
+        }
+      },
+      "objective": "Explicar la metodología de entrenamiento del BEV Transformer con datos sintéticos y aleatorización de dominio",
+      "reason": "Fusiona una foto del entorno agrícola, la cifra clave del dataset y dos puntos de configuración en una sola lámina densa"
+    },
+    {
+      "template": "split_panels",
+      "content": {
+        "eyebrow": "Módulo de planificación",
+        "title": "Tres capas: cobertura, trayectoria y control",
+        "panels": [
+          {
+            "icon": "map-pin",
+            "head": "Global — cobertura",
+            "stat_value": "1 Hz",
+            "stat_label": "Replanificación de la ruta de cobertura",
+            "points": [
+              {
+                "label": "Descomposición Boustrophedon",
+                "detail": "Pasadas paralelas al ancho del apero"
+              },
+              {
+                "label": "Relleno por fronteras",
+                "detail": "Cubre celdas residuales sin recorrer"
+              },
+              {
+                "label": "Coste multiobjetivo",
+                "detail": "Tiempo, energía, riesgo y daño al cultivo"
+              }
+            ]
+          },
+          {
+            "icon": "git-branch",
+            "head": "Local — trayectoria",
+            "stat_value": "5–10 Hz",
+            "stat_label": "Lattice de candidatos y compuerta segura",
+            "points": [
+              {
+                "label": "Lattice de 20 pasos",
+                "detail": "0,2 s por paso; 3 velocidades y 5 curvaturas"
+              },
+              {
+                "label": "Puntuación híbrida",
+                "detail": "0,65 ML + 0,35 inverso del coste clásico"
+              },
+              {
+                "label": "Celdas infladas",
+                "detail": "Margen de 2 celdas; si no hay ruta, se detiene"
+              }
+            ]
+          },
+          {
+            "icon": "gauge",
+            "head": "MPC — seguimiento",
+            "stat_value": "10–20 Hz",
+            "stat_label": "Control bicicleta cinemática sin solver",
+            "points": [
+              {
+                "label": "Horizonte de 12 pasos",
+                "detail": "Discretización 0,1 s; batalla de 1,2 m"
+              },
+              {
+                "label": "63 candidatos por ciclo",
+                "detail": "9 valores de giro x 7 de aceleración"
+              },
+              {
+                "label": "Límites físicos",
+                "detail": "Giro ±0,45 rad; aceleración ±1,2 m/s²"
+              }
+            ]
+          }
+        ],
+        "footer_left": "Navegación Autónoma Híbrida BEV",
+        "footer_right": "2026"
+      },
+      "images": {},
+      "objective": "Presentar las tres capas del planificador híbrido y sus frecuencias de ejecución",
+      "reason": "Tres capas paralelas, cada una con su frecuencia como cifra propia y dos o tres puntos de apoyo"
+    },
+    {
+      "template": "image_feature",
+      "content": {
+        "eyebrow": "Planificación híbrida · Capa 1",
+        "title": "Capa global: cobertura Boustrophedon",
+        "body": "Planificador clásico a 1 Hz: descompone el campo en celdas y genera pasadas paralelas al ancho del implemento, con relleno por fronteras.",
+        "points": [
+          {
+            "heading": "Descomposición celular",
+            "body": "Pasadas paralelas al ancho de trabajo del implemento"
+          },
+          {
+            "heading": "Relleno por fronteras",
+            "body": "Cubre las celdas residuales no barridas por las pasadas"
+          },
+          {
+            "heading": "Función objetivo",
+            "body": "Tiempo, energía, riesgo, maniobras y daño al cultivo"
+          }
+        ],
+        "caption": "Restricciones duras: radio de giro, velocidad, geocerca y distancia de seguridad",
+        "footer_left": "Navegación autónoma híbrida en BEV",
+        "footer_right": "2026"
+      },
+      "images": {
+        "feature": {
+          "query": "aerial view of tractor making parallel swaths in a green crop field",
+          "aspect_ratio": "3:4",
+          "alt": "Vista aérea de un tractor trazando pasadas paralelas en un campo de cultivo",
+          "url": "https://cdn.abacus.ai/images/4b7cd8d9-1d35-49e0-90f3-761e695962e3.jpg"
+        }
+      },
+      "objective": "Explicar la capa global de planificación: descomposición Boustrophedon, pasadas paralelas y relleno por fronteras",
+      "reason": "Una foto aérea real de pasadas paralelas en campo ilustra directamente el patrón boustrophedon junto al texto explicativo"
+    },
+    {
+      "template": "funnel_stages",
+      "content": {
+        "eyebrow": "Planificación híbrida · Capa 2",
+        "title": "Capa local: del lattice a una trayectoria",
+        "subtitle": "Puntuación aprendida combinada con coste clásico y una compuerta de seguridad dura",
+        "stages": [
+          {
+            "name": "Generación del lattice",
+            "value": "20 pasos",
+            "detail": "Candidatos de 20 pasos a 0,2 s por paso desde el estado actual"
+          },
+          {
+            "name": "Velocidad y curvatura",
+            "value": "3 × 5",
+            "detail": "Velocidades {0,8; 1,1; 1,4} m/s y curvaturas de −0,2 a 0,2"
+          },
+          {
+            "name": "Puntuación híbrida",
+            "value": "α = 0,65",
+            "detail": "S = 0,65·ML + 0,35·(coste clásico)⁻¹ para cada candidato"
+          },
+          {
+            "name": "Compuerta de inflado",
+            "value": "2 celdas",
+            "detail": "Margen de 2 celdas: se rechaza si interseca celda ocupada"
+          },
+          {
+            "name": "Salida al MPC",
+            "value": "1 ruta",
+            "detail": "Sin candidato libre de colisión se activa el fallback estacionario"
+          }
+        ],
+        "takeaway": "La compuerta es restricción dura: sin salida segura, el vehículo se detiene.",
+        "footer_left": "Navegación Híbrida BEV",
+        "footer_right": "2026"
+      },
+      "images": {},
+      "objective": "Explicar cómo la capa local filtra el lattice de candidatos hasta una única trayectoria segura",
+      "reason": "El planificador local es un embudo real: muchos candidatos generados que se van descartando hasta una sola trayectoria enviada al MPC"
+    },
+    {
+      "template": "chart_feature",
+      "content": {
+        "eyebrow": "Capa 3 — Control",
+        "footer_left": "Tesis — Navegación BEV",
+        "footer_right": "2026",
+        "title": "MPC: bicicleta cinemática muestreada",
+        "subtitle": "Controlador cinemático muestreado sin solver, evaluado en cada ciclo",
+        "chart_data": {
+          "kind": "bar",
+          "labels": [
+            "Opciones de dirección",
+            "Opciones de aceleración",
+            "Candidatos por ciclo",
+            "Pasos de horizonte"
+          ],
+          "values": [
+            9,
+            7,
+            63,
+            12
+          ],
+          "unit": "n"
+        },
+        "stats": [
+          {
+            "value": "1,2",
+            "unit": "m",
+            "label": "Batalla del vehículo"
+          },
+          {
+            "value": "0,1",
+            "unit": "s",
+            "label": "Discretización temporal"
+          },
+          {
+            "value": "±1,2",
+            "unit": "m/s²",
+            "label": "Límite de aceleración"
+          }
+        ],
+        "takeaway": "Barrido exhaustivo de 63 combinaciones por ciclo, ejecutado a 10–20 Hz."
+      },
+      "images": {},
+      "objective": "Detallar los parámetros del controlador MPC de seguimiento de trayectoria como panel numérico de un vistazo",
+      "reason": "Ocho parámetros numéricos de configuración del controlador se leen mejor como muro de métricas que como prosa"
+    },
+    {
+      "template": "image_feature",
+      "content": {
+        "eyebrow": "Módulo 3 · Visión agrícola",
+        "title": "DeepLabV3+ para salud del cultivo",
+        "body": "Segmentación de cultivo, maleza y anomalías con DeepLabV3+ y encoder EfficientNet-B4, vía segmentation_models_pytorch.",
+        "points": [
+          {
+            "heading": "Encoder EfficientNet-B4",
+            "body": "Preentrenado en ImageNet; buen balance precisión-coste"
+          },
+          {
+            "heading": "Fallback declarado",
+            "body": "torchvision DeepLabV3 + ResNet-50 si falta la dependencia"
+          },
+          {
+            "heading": "Objetivo RQ3",
+            "body": "mIoU > 0,70 dentro de los límites de recursos del prototipo"
+          }
+        ],
+        "caption": "Las máscaras se proyectan al marco BEV con intrínsecos",
+        "footer_left": "Navegación Autónoma en BEV",
+        "footer_right": "2026"
+      },
+      "images": {
+        "feature": {
+          "query": "close-up rows of green lettuce crop plants in a farm field, vertical photo",
+          "aspect_ratio": "3:4",
+          "alt": "Hileras de cultivo verde en un campo agrícola",
+          "url": "https://cdn.abacus.ai/images/5044268d-dd65-4bb5-8a91-12e3608c3820.jpg"
+        }
+      },
+      "objective": "Presentar la arquitectura de visión agrícola: DeepLabV3+ con encoder EfficientNet-B4 y su fallback declarado",
+      "reason": "Un módulo con una imagen agrícola relevante más tres puntos técnicos breves encaja en la división magazine"
+    },
+    {
+      "template": "mosaic_tiles",
+      "content": {
+        "eyebrow": "Visión agrícola",
+        "title": "Entrenamiento e integración en BEV",
+        "stat_value": "54.306",
+        "stat_label": "PlantVillage: 14 cultivos, 38 clases, para preentrenamiento",
+        "points": [
+          {
+            "heading": "Receta de entrenamiento",
+            "body": "AdamW, recocido coseno y warmup; pérdida entropía cruzada + Dice + Focal."
+          },
+          {
+            "heading": "Adaptación de dominio",
+            "body": "Ajuste fino con imágenes de campo particionadas por día, no por fotograma."
+          }
+        ],
+        "takeaway": "El mapa de salud reescribe el coste de recorrido: percepción cerrando el lazo.",
+        "footer_left": "Navegación Híbrida en BEV",
+        "footer_right": "2026"
+      },
+      "images": {
+        "photo": {
+          "query": "close-up of green crop leaves with disease spots in an agricultural field",
+          "aspect_ratio": "3:4",
+          "alt": "Hojas de cultivo con manchas de enfermedad en el campo",
+          "url": "https://cdn.abacus.ai/images/ced05224-50b6-49b5-ac0d-e40b903ba7cb.png"
+        }
+      },
+      "objective": "Explicar la estrategia de entrenamiento del módulo de visión agrícola y su integración con el mapa BEV",
+      "reason": "Fusiona una foto agrícola real, la cifra clave del dataset y dos puntos de método/integración en un solo golpe visual"
+    },
+    {
+      "template": "chart_feature",
+      "content": {
+        "eyebrow": "Implementación",
+        "title": "Stack software y frecuencias por módulo",
+        "subtitle": "ROS2 Humble, PyTorch 2.0+ y contenedores Docker sobre Ubuntu 22.04",
+        "chart_data": {
+          "kind": "bar",
+          "labels": [
+            "BEV Transformer",
+            "Planif. global",
+            "Planif. local (máx.)",
+            "MPC (máx.)",
+            "Pipeline cerrado"
+          ],
+          "values": [
+            10,
+            1,
+            10,
+            20,
+            5
+          ],
+          "unit": "Hz"
+        },
+        "stats": [
+          {
+            "value": "Humble",
+            "label": "ROS2 como middleware; registro con rosbag2"
+          },
+          {
+            "value": "2.0+",
+            "label": "PyTorch, torchvision y segmentation-models"
+          },
+          {
+            "value": "pytest",
+            "label": "Tests de métricas, swaths y compuerta"
+          }
+        ],
+        "takeaway": "Cada capa corre a su propio ritmo; el identificador de cultivo opera de forma asíncrona",
+        "footer_left": "Navegación Autónoma en BEV",
+        "footer_right": "2026"
+      },
+      "images": {},
+      "objective": "Mostrar el stack tecnológico y las frecuencias de ejecución por módulo",
+      "reason": "Las frecuencias de los cinco módulos son una comparación cuantitativa de ≥3 valores: debe graficarse"
+    },
+    {
+      "template": "insight_stat",
+      "content": {
+        "eyebrow": "Resultados · RQ1",
+        "title": "La percepción BEV supera el umbral declarado en simulación",
+        "points": [
+          {
+            "body": "mIoU agregado > 0,70: cumple el objetivo declarado de RQ1 en simulación"
+          },
+          {
+            "body": "Supera también el mínimo viable del sistema, fijado en mIoU > 0,60"
+          },
+          {
+            "body": "Rejilla BEV de 200 × 200 celdas y 128 canales alimenta ambas capas de planificación"
+          },
+          {
+            "body": "Sin desglose por clase: el IoU de las 6 clases semánticas no está registrado"
+          },
+          {
+            "body": "Sin significancia estadística: faltan ejecuciones independientes con varianza"
+          }
+        ],
+        "stat_value": "> 0,70",
+        "stat_label": "mIoU agregado BEV",
+        "stat_note": "Resultado de simulación y prototipo; la validación en terreno agrícola real no está establecida.",
+        "footer_left": "Navegación Autónoma Híbrida BEV",
+        "footer_right": "2026"
+      },
+      "images": {},
+      "objective": "Presentar el resultado de percepción BEV (mIoU > 0,70) y calificar su nivel de evidencia",
+      "reason": "Un conjunto de hallazgos cualificados anclado en una única métrica decisiva"
+    },
+    {
+      "template": "kpi_stats",
+      "content": {
+        "eyebrow": "Resultados · Planificación y control",
+        "title": "RQ2 y RQ4 cumplidos en simulación",
+        "subtitle": "Corridas sobre disposiciones de obstáculos generadas aleatoriamente",
+        "stats": [
+          {
+            "value": ">95",
+            "unit": "%",
+            "label": "Trayectos libres de colisión",
+            "context": "Compuerta de celdas infladas (margen 2 celdas) como restricción"
+          },
+          {
+            "value": "<0,5",
+            "unit": "m",
+            "label": "RMSE de seguimiento MPC",
+            "context": "Bicicleta cinemática muestreada, horizonte de 12 pasos a 0,1 s"
+          },
+          {
+            "value": ">5",
+            "unit": "Hz",
+            "label": "Rendimiento del pipeline",
+            "context": "Operación en lazo cerrado con BEV a 10 Hz y global a 1 Hz"
+          }
+        ],
+        "takeaway": "Cifras agregadas: falta el desglose por escenario de densidad de obstáculos",
+        "footer_left": "Navegación Híbrida BEV",
+        "footer_right": "2026"
+      },
+      "images": {},
+      "objective": "Presentar los resultados cuantitativos de la planificación híbrida frente a los umbrales declarados de RQ2 y RQ4",
+      "reason": "Tres cifras agregadas de titular sin serie que graficar; kpi_stats las muestra a gran escala con contexto"
+    },
+    {
+      "template": "image_band_stats",
+      "content": {
+        "eyebrow": "Resultados · RQ3",
+        "title": "Identificación de cultivo: mIoU > 0,70 en validación",
+        "band": "",
+        "stats": [
+          {
+            "icon": "leaf",
+            "value": "> 0,70",
+            "label": "mIoU de validación: objetivo RQ3 cumplido en simulación"
+          },
+          {
+            "icon": "database",
+            "value": "54.306",
+            "label": "Imágenes PlantVillage: 14 cultivos, 38 clases"
+          },
+          {
+            "icon": "triangle-alert",
+            "value": "~31%",
+            "label": "Precisión en campo reportada en literatura por sesgo de fondo"
+          }
+        ],
+        "footer_left": "Navegación Autónoma Híbrida en BEV",
+        "footer_right": "2026"
+      },
+      "images": {
+        "band": {
+          "query": "close-up rows of green lettuce crops in an open agricultural field, daylight",
+          "aspect_ratio": "3:1",
+          "alt": "Hileras de cultivo verde en un campo agrícola abierto",
+          "url": "https://cdn.abacus.ai/images/3afb3a1e-d9dd-43e4-9575-85acbd7d1137.jpg"
+        }
+      },
+      "objective": "Presentar los resultados de identificación de cultivo: mIoU > 0,70 en validación y el sesgo de fondo aún pendiente",
+      "reason": "Una foto agrícola real acompañada de las cifras clave de validación resume el resultado del módulo de visión sin inventar desgloses"
+    },
+    {
+      "template": "comparison_table",
+      "content": {
+        "eyebrow": "08 · Diseño experimental",
+        "title": "Ablaciones pendientes",
+        "subtitle": "Solo se validaron barridos en simulación con obstáculos aleatorios y la compuerta de celdas infladas.",
+        "rule_cap": "Ninguna ablación ejecutada",
+        "col1_label": "Estudio",
+        "col1_sub": "Módulo afectado",
+        "col2_label": "Comparación",
+        "col2_sub": "Qué se contrasta",
+        "col3_label": "Prioridad",
+        "col3_sub": "Orden de ejecución",
+        "col4_label": "Estado",
+        "col4_sub": "Al cierre de la tesis",
+        "rows": [
+          {
+            "name": "Ablación de modalidad",
+            "region": "Percepción BEV",
+            "era": "Cámara/LiDAR/fusión",
+            "value": "Máxima",
+            "known": "Planificada — no ejecutada",
+            "em": true
+          },
+          {
+            "name": "IoU por clase",
+            "region": "Percepción BEV",
+            "era": "6 clases semánticas",
+            "value": "Alta",
+            "known": "Planificada — no ejecutada"
+          },
+          {
+            "name": "Colisión por escenario",
+            "region": "Planificación local",
+            "era": "Densidad obstáculos",
+            "value": "Alta",
+            "known": "Planificada — no ejecutada"
+          },
+          {
+            "name": "Latencia por módulo",
+            "region": "Pipeline completo",
+            "era": "Perfilado hardware",
+            "value": "Alta",
+            "known": "Planificada — no ejecutada"
+          },
+          {
+            "name": "Fusión temporal",
+            "region": "Percepción BEV",
+            "era": "1 frame vs. multi",
+            "value": "Futura",
+            "known": "Diferida a campañas posteriores"
+          }
+        ],
+        "source": "Expectativa de literatura (BEVFusion): la fusión superaría a cada modalidad aislada; aún no medido aquí.",
+        "brand": "Defensa TFM · 2026"
+      },
+      "images": {},
+      "objective": "Mostrar el plan de ablaciones y dejar explícito que ninguna se ha ejecutado todavía",
+      "reason": "Matriz de cinco estudios con atributos consistentes (módulo, comparación, prioridad, estado): una tabla es la forma natural"
+    },
+    {
+      "template": "split_panels",
+      "content": {
+        "eyebrow": "Discusión",
+        "title": "Fortalezas del diseño frente a la brecha sim-real",
+        "panels": [
+          {
+            "icon": "shield-check",
+            "head": "Diseño modular validado",
+            "stat_value": "4/4",
+            "stat_label": "objetivos RQ cumplidos en simulación",
+            "points": [
+              {
+                "label": "Dominios de fallo aislados",
+                "detail": "Fallbacks clásicos en funciones críticas"
+              },
+              {
+                "label": "Compuerta de celdas infladas",
+                "detail": "Restricción dura: parada ante ruta insegura"
+              },
+              {
+                "label": "Fusión cámara-LiDAR compacta",
+                "detail": "mIoU > 0,70 con atención cruzada"
+              }
+            ]
+          },
+          {
+            "icon": "triangle-alert",
+            "head": "Brecha simulación-realidad",
+            "stat_value": "2.000",
+            "stat_label": "muestras sintéticas de entrenamiento",
+            "points": [
+              {
+                "label": "Sin validación en terreno real",
+                "detail": "Deslizamiento, polvo y GNSS bajo dosel sin modelar"
+              },
+              {
+                "label": "Datos muy por debajo del estado del arte",
+                "detail": "BEVFormer/BEVFusion entrenan con órdenes más"
+              },
+              {
+                "label": "Sesgo de fondo en PlantVillage",
+                "detail": "La literatura reporta caída a ~31% en campo"
+              }
+            ]
+          },
+          {
+            "icon": "settings",
+            "head": "Mitigaciones planteadas",
+            "stat_label": "prioridad: validación de campo",
+            "points": [
+              {
+                "label": "Aleatorización de dominio",
+                "detail": "Iluminación, textura, ruido y polvo simulados"
+              },
+              {
+                "label": "Ampliar a 10.000–20.000 fotogramas",
+                "detail": "Y ajuste fino con imágenes reales de campo"
+              },
+              {
+                "label": "Compresión y cuantización INT8",
+                "detail": "Latencia por módulo aún no registrada"
+              }
+            ]
+          }
+        ],
+        "footer_left": "Navegación Autónoma Híbrida BEV",
+        "footer_right": "2026"
+      },
+      "images": {},
+      "objective": "Contrastar las fortalezas del diseño modular con la brecha simulación-realidad y las mitigaciones previstas",
+      "reason": "Tres lentes de igual peso (logros, límites, mitigaciones), cada una con puntos propios y una cifra de cabecera"
+    },
+    {
+      "template": "detail_brief",
+      "content": {
+        "eyebrow": "Cierre",
+        "title": "Conclusiones y trabajo futuro",
+        "subtitle": "Cuatro objetivos cumplidos en simulación; la validación de campo marca la siguiente etapa",
+        "lead": "La arquitectura modular compacta —dos ConvEncoders con atención cruzada bidireccional, cobertura Boustrophedon y lattice local con puntuador aprendido— cumple los cuatro objetivos en simulación.",
+        "sections": [
+          {
+            "heading": "RQ1–RQ4 cumplidas en simulación",
+            "body": "BEV mIoU > 0,70 (RQ1); tasa libre de colisiones > 95% con RMSE < 0,5 m (RQ2); mIoU de identificación de cultivo > 0,70 (RQ3); pipeline completo > 5 Hz en lazo cerrado (RQ4)."
+          },
+          {
+            "heading": "Contribución principal",
+            "body": "Primer sistema que integra percepción BEV multimodal, planificación híbrida de cobertura e identificación de salud del cultivo en una arquitectura única, con base reproducible para campañas de campo."
+          },
+          {
+            "heading": "Trabajo futuro prioritario",
+            "body": "1) Validación en terreno agrícola real; 2) ablaciones de modalidad (cámara vs. LiDAR vs. fusión); 3) dataset BEV agrícola desde vehículo terrestre; 4) cuantización INT8 y perfilado de latencia."
+          },
+          {
+            "heading": "Líneas de extensión",
+            "body": "Ampliar el conjunto sintético de 2.000 a 10.000–20.000 fotogramas, integrar refuerzo (SAC) en una envolvente segura verificada y abordar el acople de aperos con estimación de pose 6D."
+          }
+        ],
+        "takeaway": "La brecha simulación-realidad no invalida el diseño: fija la agenda de validación.",
+        "footer_left": "Navegación Autónoma Híbrida en BEV",
+        "footer_right": "2026"
+      },
+      "images": {},
+      "objective": "Cerrar el argumento: los cuatro objetivos se cumplen en simulación y la agenda futura prioriza la validación de campo",
+      "reason": "Contenido denso de conclusiones y trabajo futuro que requiere párrafos sustantivos, no viñetas cortas"
+    },
+    {
+      "template": "closing_cta",
+      "content": {
+        "eyebrow": "Defensa de Trabajo Fin de Máster",
+        "title": "Gracias",
+        "title_em": "Preguntas del tribunal",
+        "subtitle": "Una arquitectura modular compacta, verificable por partes y reproducible como base de campañas futuras.",
+        "takeaways": [
+          {
+            "heading": "Lo que queda demostrado",
+            "body": "Las cuatro preguntas de investigación alcanzan sus umbrales en simulación con dos ConvEncoders y atención cruzada bidireccional."
+          },
+          {
+            "heading": "Lo que queda abierto",
+            "body": "La brecha simulación-realidad sigue abierta: sin validación en terreno agrícola real ni significancia estadística por falta de repeticiones."
+          },
+          {
+            "heading": "Siguiente campaña",
+            "body": "Validación de campo con verdad de terreno RTK-GNSS, ablación de modalidad cámara/LiDAR/fusión y caracterización de latencia en hardware embebido."
+          }
+        ],
+        "contacts": [
+          "Pedro Canales",
+          "Máster en Inteligencia Artificial",
+          "19 de agosto de 2026"
+        ],
+        "footer_left": "Navegación Autónoma Híbrida en BEV",
+        "footer_right": "2026"
+      },
+      "images": {},
+      "objective": "Cerrar la defensa con la síntesis de la contribución y abrir el turno de preguntas del tribunal",
+      "reason": "Cierre con síntesis, próximos pasos y datos de contacto para el turno de preguntas"
+    }
+  ]
+}

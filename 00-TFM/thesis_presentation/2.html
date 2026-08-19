@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Recorrido de la presentación</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#F2F4EC;
+  --surface:#E6EAD9;
+  --panel:#2E3B2A;
+  --fg:#26311F;
+  --muted:#55624A;
+  --faint:#82907A;
+  --accent:#A4C05B;
+  --accent2:#B4552D;
+  --on-dark:#F2F4EC;
+  --on-accent:#26311F;
+  --grid:#D8DEC8;
+  --font-display:'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-body:'Inter', 'Segoe UI', Arial, sans-serif;
+}
+
+/* base.css — shared by every ppt_templates slide; the renderer inlines this into
+   each finished N.html so the output is fully self-contained (no runtime reference
+   to the template library).
+
+   Contains ONLY the layout contract + the design-variable-driven canvas. It declares
+   NO colour or font VALUES — those come from the palette :root block the renderer
+   injects. base.css = shared rules; palette = the values; template = the layout.
+
+   Design-variable contract (every palette defines all 13; templates use ONLY these):
+     --bg            slide canvas background (.slide)
+     --surface       raised/alternate surface (cards, zebra rows)
+     --panel         dark panel/scrim fill — pair its text with --on-dark
+     --fg            primary text on --bg
+     --muted         secondary body text
+     --faint         tertiary text, captions, subdued labels
+     --accent        primary accent (rules, markers, key highlights)
+     --accent2       secondary accent (emphasis / turning-point highlights)
+     --on-dark       text placed on --panel / dark fills
+     --on-accent     text placed on --accent fills
+     --grid          hairline dividers, rails, separators
+     --font-display  headline font stack
+     --font-body     body/label font stack
+
+   Export-safety notes (the PPTX exporter only extracts text inside <p>/<h1>-<h6>):
+   1. The margin reset is LOAD-BEARING. Browser default margins on <p>/<h*> silently
+      add ~440px of height on dense slides, which both pushes content off the 1080px
+      canvas AND inflates documentElement.scrollHeight so the slide-background
+      detector drops the background (white slide). Zeroing them kills that bug class
+      for every template at once.
+   2. The slide background lives on .slide (the root container), never on <body>. */
+
+*{margin:0;padding:0;box-sizing:border-box;}
+p,h1,h2,h3,h4,h5,h6{margin:0;}
+body{margin:0;overflow:hidden;}
+
+.slide{
+  width:1920px;
+  height:1080px;
+  position:relative;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:var(--font-body);
+}
+
+/* ---- v2 shared utilities (token-only; opt-in by the newer color-blocked templates) ---- */
+/* Color-blocked panels — SOLID fills only. The exporter maps a background <div> to a filled
+   PPTX shape (gradients are avoided by convention). Pair each fill with its readable text
+   token so contrast survives on both light and dark presets. */
+.block-surface{background:var(--surface);color:var(--fg);}
+.block-panel,.block-dark{background:var(--panel);color:var(--on-dark);}
+.block-accent{background:var(--accent);color:var(--on-accent);}
+.block-accent2{background:var(--accent2);color:var(--on-accent);}
+
+/* Inline-SVG icons: render_icon emits <svg class="icon"> with a LITERAL-hex stroke and explicit
+   width/height attrs (viewBox 0 0 24 24, so stroke scales with size). This rule only guarantees
+   clean block layout with no inline-baseline gap; color comes from the baked stroke. */
+.icon{display:block;flex:none;}
+
+/* IMG FAILURE — a resolved URL can still 404 at EXPORT time (hotlink 403, CDN miss). Without
+   this a broken <img> paints its alt text plus the UA's broken-file glyph into the slide; one
+   deck shipped an image query slug as visible body copy. Degrade to an empty panel instead. */
+img{ font-size:0; color:transparent; }
+
+/* FOOTER — a one-line strip whose hairline (.foot-rule) hangs at the box TOP while the box is
+   anchored at the slide bottom, so any growth is UPWARD, into body copy. Worst-case footer text
+   fits 1680px with ~6px to spare under Inter; the wider-bodied Work Sans palettes tipped it into
+   a wrap, doubling the strip and driving the rule through 3 templates' text. Slot text therefore
+   never wraps (ellipsize the overflow — the exporter still gets the full text), and the line
+   height is pinned so the rule's y no longer moves with the palette's font metrics. */
+.footer{ line-height:1.2; }
+.footer [data-slot]{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+
+
+.slide{
+  padding:64px 96px 76px 96px;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ---------- Header ---------- */
+header{ display:flex; justify-content:space-between; align-items:flex-end; gap:56px; flex:none; }
+.head-left{ max-width:66%; }
+.eyebrow{ font-family:var(--font-body); font-size:22px; font-weight:600; letter-spacing:0.4em; text-transform:uppercase; color:var(--accent); }
+.title{ font-family:var(--font-display); font-weight:var(--w-display,700); font-size:74px; line-height:1.02; letter-spacing:-0.01em; color:var(--fg); margin-top:14px; }
+.subtitle{ font-family:var(--font-body); font-size:26px; line-height:1.34; color:var(--muted); text-align:right; max-width:520px; }
+
+/* ---------- Ledger rows ---------- */
+.rows{ flex:1; min-height:0; margin-top:44px; display:flex; flex-direction:column; gap:16px; }
+/* label and note sit in SEPARATE columns (name left, note filling the right) so a row reads
+   across the full card width — stacked label+note left-clustered the content and stranded
+   the right half of every row when no pill was planned. */
+.row{ flex:1; min-height:0; display:grid; grid-template-columns:88px minmax(0,600px) minmax(0,1fr) auto;
+      align-items:center; column-gap:40px; padding:20px 44px;
+      border:1.5px solid var(--grid); border-radius:var(--r-card,20px); background:var(--bg); overflow:hidden; }
+.row:nth-child(odd){ background:var(--surface); }
+/* MONO-BOLD presets cycle row fills (dark panel2 on 3n+2, bright panel3 on 3n). Fallbacks chain
+   back to the exact odd/even alternation above, so presets without the tokens are unchanged;
+   the double :nth-child selectors exist only to keep those fallbacks row-parity-correct. */
+.row:nth-child(3n+2){ background:var(--panel2,var(--bg)); border-color:var(--panel2,var(--grid)); }
+.row:nth-child(odd):nth-child(3n+2){ background:var(--panel2,var(--surface)); }
+.row:nth-child(3n+2) .r-label{ color:var(--on-panel2,var(--fg)); }
+.row:nth-child(3n+2) .r-note{ color:var(--on-panel2,var(--muted)); }
+.row:nth-child(3n+2) .r-pill{ border-color:var(--on-panel2,var(--accent2)); }
+.row:nth-child(3n){ background:var(--panel3,var(--bg)); border-color:var(--panel3,var(--grid)); }
+.row:nth-child(odd):nth-child(3n){ background:var(--panel3,var(--surface)); }
+.row:nth-child(3n) .r-no{ color:var(--on-panel3,var(--accent)); }
+.row:nth-child(3n) .r-label{ color:var(--on-panel3,var(--fg)); }
+.row:nth-child(3n) .r-note{ color:var(--on-panel3,var(--muted)); }
+.row:nth-child(3n) .r-pill{ border-color:var(--on-panel3,var(--accent2)); color:var(--on-panel3,var(--accent)); }
+.r-no{ font-family:var(--font-display); font-weight:700; font-size:58px; line-height:1; color:var(--accent); }
+.r-label{ font-family:var(--font-display); font-weight:700; font-size:38px; line-height:1.12; color:var(--fg); }
+.r-note{ font-family:var(--font-body); font-size:26px; line-height:1.32; color:var(--muted); }
+.r-pill{ justify-self:end; max-width:340px; border:1.5px solid var(--accent2); border-radius:999px; padding:9px 24px;
+         font-family:var(--font-body); font-size:22px; font-weight:600; color:var(--accent); text-align:center; }
+
+/* ---------- Footer ---------- */
+.footer{ position:absolute; left:120px; right:120px; bottom:30px; display:flex; justify-content:space-between; align-items:center; padding-top:13px; font-family:var(--font-body); font-size:20px; letter-spacing:0.16em; text-transform:uppercase; color:var(--faint); }
+.footer .foot-rule{ position:absolute; top:0; left:0; right:0; height:1px; background:var(--faint); }
+.footer .brand{ color:var(--muted); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="slide">
+
+  <header>
+    <div class="head-left">
+      <p class="eyebrow" data-slot="eyebrow">Agenda de la defensa</p>
+      <h1 class="title" data-slot="title">Recorrido de la presentación</h1>
+    </div>
+    <p class="subtitle" data-slot="subtitle">De la motivación agrícola a los resultados en simulación y el trabajo futuro</p>
+  </header>
+
+  <section class="rows">
+
+    <div class="row">
+      <div><p class="r-no" data-slot="items.0.no">01</p></div>
+      <div><h2 class="r-label" data-slot="items.0.label">Motivación y problema</h2></div>
+      <div><p class="r-note" data-slot="items.0.note">Automatización agrícola y las cinco brechas sin sistema integrado validado.</p></div>
+      <div><p class="r-pill" data-slot="items.0.pill">Contexto</p></div>
+    </div>
+
+    <div class="row">
+      <div><p class="r-no" data-slot="items.1.no">02</p></div>
+      <div><h2 class="r-label" data-slot="items.1.label">Objetivos y estado del arte</h2></div>
+      <div><p class="r-note" data-slot="items.1.note">RQ1–RQ4 con umbrales declarados; revisión de BEV y de planificación híbrida.</p></div>
+      <div><p class="r-pill" data-slot="items.1.pill">RQ1–RQ4</p></div>
+    </div>
+
+    <div class="row">
+      <div><p class="r-no" data-slot="items.2.no">03</p></div>
+      <div><h2 class="r-label" data-slot="items.2.label">Arquitectura del sistema</h2></div>
+      <div><p class="r-note" data-slot="items.2.note">Pipeline modular de cinco capas con realimentación del mapa de salud.</p></div>
+      <div><p class="r-pill" data-slot="items.2.pill">5 capas</p></div>
+    </div>
+
+    <div class="row">
+      <div><p class="r-no" data-slot="items.3.no">04</p></div>
+      <div><h2 class="r-label" data-slot="items.3.label">Los tres módulos</h2></div>
+      <div><p class="r-note" data-slot="items.3.note">BEV Transformer, planificación híbrida de tres capas y visión agrícola DeepLabV3+.</p></div>
+      <div><p class="r-pill" data-slot="items.3.pill">Núcleo técnico</p></div>
+    </div>
+
+    <div class="row">
+      <div><p class="r-no" data-slot="items.4.no">05</p></div>
+      <div><h2 class="r-label" data-slot="items.4.label">Resultados y conclusiones</h2></div>
+      <div><p class="r-note" data-slot="items.4.note">Métricas en simulación, ablaciones pendientes, limitaciones y trabajo futuro.</p></div>
+      <div><p class="r-pill" data-slot="items.4.pill">Simulación</p></div>
+    </div>
+
+  </section>
+
+  <div class="footer">
+    <div class="foot-rule"></div>
+    <p class="brand" data-slot="footer_left">Navegación Autónoma Híbrida BEV</p>
+    <p data-slot="footer_right">2026</p>
+  </div>
+
+</div>
+<style id="cf-contrast-fix">body > div:nth-child(1) > header:nth-child(1) > div:nth-child(1) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(1) > div:nth-child(1) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(1) > div:nth-child(4) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(2) > div:nth-child(1) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(2) > div:nth-child(4) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(3) > div:nth-child(1) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(3) > div:nth-child(4) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(4) > div:nth-child(1) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(4) > div:nth-child(4) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(5) > div:nth-child(1) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(5) > div:nth-child(4) > p:nth-child(1){color:#111111 !important;}</style><style id="cf-contrast-fix">body > div:nth-child(1) > div:nth-child(3) > p:nth-child(3){text-shadow:0 0 2px rgba(255,255,255,0.92), 0 0 3px rgba(255,255,255,0.92), 1px 1px 2px rgba(255,255,255,0.92), -1px -1px 2px rgba(255,255,255,0.92), 1px -1px 2px rgba(255,255,255,0.92), -1px 1px 2px rgba(255,255,255,0.92) !important;}</style><style id="cf-contrast-fix">body > div:nth-child(1) > div:nth-child(3) > p:nth-child(3){text-shadow:0 0 2px rgba(255,255,255,0.92), 0 0 3px rgba(255,255,255,0.92), 1px 1px 2px rgba(255,255,255,0.92), -1px -1px 2px rgba(255,255,255,0.92), 1px -1px 2px rgba(255,255,255,0.92), -1px 1px 2px rgba(255,255,255,0.92) !important;}</style></body>
+</html>

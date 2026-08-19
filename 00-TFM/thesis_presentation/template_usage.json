@@ -1,0 +1,107 @@
+{
+  "palette": "olive",
+  "deck_title": "Navegación Autónoma Híbrida en BEV",
+  "slides": [
+    {
+      "slide": 1,
+      "template": "cover_split"
+    },
+    {
+      "slide": 2,
+      "template": "numbered_ledger"
+    },
+    {
+      "slide": 3,
+      "template": "image_feature"
+    },
+    {
+      "slide": 4,
+      "template": "detail_brief"
+    },
+    {
+      "slide": 5,
+      "template": "quadrant_matrix"
+    },
+    {
+      "slide": 6,
+      "template": "comparison_table"
+    },
+    {
+      "slide": 7,
+      "template": "capability_rows"
+    },
+    {
+      "slide": 8,
+      "template": "flow_chevrons"
+    },
+    {
+      "slide": 9,
+      "template": "image_band_stats"
+    },
+    {
+      "slide": 10,
+      "template": "process_steps",
+      "hybrid": true
+    },
+    {
+      "slide": 11,
+      "template": "mosaic_tiles"
+    },
+    {
+      "slide": 12,
+      "template": "split_panels"
+    },
+    {
+      "slide": 13,
+      "template": "image_feature"
+    },
+    {
+      "slide": 14,
+      "template": "funnel_stages"
+    },
+    {
+      "slide": 15,
+      "template": "chart_feature"
+    },
+    {
+      "slide": 16,
+      "template": "image_feature"
+    },
+    {
+      "slide": 17,
+      "template": "mosaic_tiles"
+    },
+    {
+      "slide": 18,
+      "template": "chart_feature"
+    },
+    {
+      "slide": 19,
+      "template": "insight_stat"
+    },
+    {
+      "slide": 20,
+      "template": "kpi_stats"
+    },
+    {
+      "slide": 21,
+      "template": "image_band_stats"
+    },
+    {
+      "slide": 22,
+      "template": "comparison_table"
+    },
+    {
+      "slide": 23,
+      "template": "split_panels"
+    },
+    {
+      "slide": 24,
+      "template": "detail_brief"
+    },
+    {
+      "slide": 25,
+      "template": "closing_cta"
+    }
+  ]
+}

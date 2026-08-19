@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cuatro preguntas, cuatro umbrales</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#F2F4EC;
+  --surface:#E6EAD9;
+  --panel:#2E3B2A;
+  --fg:#26311F;
+  --muted:#55624A;
+  --faint:#82907A;
+  --accent:#A4C05B;
+  --accent2:#B4552D;
+  --on-dark:#F2F4EC;
+  --on-accent:#26311F;
+  --grid:#D8DEC8;
+  --font-display:'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-body:'Inter', 'Segoe UI', Arial, sans-serif;
+}
+/* base.css — shared by every ppt_templates slide; the renderer inlines this into
+   each finished N.html so the output is fully self-contained (no runtime reference
+   to the template library).
+
+   Contains ONLY the layout contract + the design-variable-driven canvas. It declares
+   NO colour or font VALUES — those come from the palette :root block the renderer
+   injects. base.css = shared rules; palette = the values; template = the layout.
+
+   Design-variable contract (every palette defines all 13; templates use ONLY these):
+     --bg            slide canvas background (.slide)
+     --surface       raised/alternate surface (cards, zebra rows)
+     --panel         dark panel/scrim fill — pair its text with --on-dark
+     --fg            primary text on --bg
+     --muted         secondary body text
+     --faint         tertiary text, captions, subdued labels
+     --accent        primary accent (rules, markers, key highlights)
+     --accent2       secondary accent (emphasis / turning-point highlights)
+     --on-dark       text placed on --panel / dark fills
+     --on-accent     text placed on --accent fills
+     --grid          hairline dividers, rails, separators
+     --font-display  headline font stack
+     --font-body     body/label font stack
+
+   Export-safety notes (the PPTX exporter only extracts text inside <p>/<h1>-<h6>):
+   1. The margin reset is LOAD-BEARING. Browser default margins on <p>/<h*> silently
+      add ~440px of height on dense slides, which both pushes content off the 1080px
+      canvas AND inflates documentElement.scrollHeight so the slide-background
+      detector drops the background (white slide). Zeroing them kills that bug class
+      for every template at once.
+   2. The slide background lives on .slide (the root container), never on <body>. */
+
+*{margin:0;padding:0;box-sizing:border-box;}
+p,h1,h2,h3,h4,h5,h6{margin:0;}
+body{margin:0;overflow:hidden;}
+
+.slide{
+  width:1920px;
+  height:1080px;
+  position:relative;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:var(--font-body);
+}
+
+/* ---- v2 shared utilities (token-only; opt-in by the newer color-blocked templates) ---- */
+/* Color-blocked panels — SOLID fills only. The exporter maps a background <div> to a filled
+   PPTX shape (gradients are avoided by convention). Pair each fill with its readable text
+   token so contrast survives on both light and dark presets. */
+.block-surface{background:var(--surface);color:var(--fg);}
+.block-panel,.block-dark{background:var(--panel);color:var(--on-dark);}
+.block-accent{background:var(--accent);color:var(--on-accent);}
+.block-accent2{background:var(--accent2);color:var(--on-accent);}
+
+/* Inline-SVG icons: render_icon emits <svg class="icon"> with a LITERAL-hex stroke and explicit
+   width/height attrs (viewBox 0 0 24 24, so stroke scales with size). This rule only guarantees
+   clean block layout with no inline-baseline gap; color comes from the baked stroke. */
+.icon{display:block;flex:none;}
+
+/* IMG FAILURE — a resolved URL can still 404 at EXPORT time (hotlink 403, CDN miss). Without
+   this a broken <img> paints its alt text plus the UA's broken-file glyph into the slide; one
+   deck shipped an image query slug as visible body copy. Degrade to an empty panel instead. */
+img{ font-size:0; color:transparent; }
+
+/* FOOTER — a one-line strip whose hairline (.foot-rule) hangs at the box TOP while the box is
+   anchored at the slide bottom, so any growth is UPWARD, into body copy. Worst-case footer text
+   fits 1680px with ~6px to spare under Inter; the wider-bodied Work Sans palettes tipped it into
+   a wrap, doubling the strip and driving the rule through 3 templates' text. Slot text therefore
+   never wraps (ellipsize the overflow — the exporter still gets the full text), and the line
+   height is pinned so the rule's y no longer moves with the palette's font metrics. */
+.footer{ line-height:1.2; }
+.footer [data-slot]{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+
+.slide{ display:flex; flex-direction:column; padding:64px 96px 86px 96px; }
+
+header{ display:flex; justify-content:space-between; align-items:flex-end; gap:56px; flex:none; }
+.head-left{ max-width:66%; }
+.eyebrow{ font-family:var(--font-body); font-size:22px; font-weight:600; letter-spacing:0.4em; text-transform:uppercase; color:var(--accent); }
+.title{ font-family:var(--font-display); font-weight:var(--w-display,700); font-size:70px; line-height:1.02; letter-spacing:-0.01em; color:var(--fg); margin-top:12px; }
+.subtitle{ font-family:var(--font-body); font-size:26px; line-height:1.34; color:var(--muted); text-align:right; max-width:520px; }
+
+/* 2x2 matrix with a center cross drawn by the cell gap over an accent-tinted rule */
+.grid{ position:relative; flex:1; min-height:0; margin-top:38px;
+       display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:18px; }
+.cross-v{ position:absolute; left:50%; top:0; bottom:0; width:2px; margin-left:-1px; background:var(--accent); }
+.cross-h{ position:absolute; top:50%; left:0; right:0; height:2px; margin-top:-1px; background:var(--accent); }
+.q{ position:relative; z-index:1; border-radius:var(--r-card,20px); padding:34px 38px; background:var(--surface);
+    display:flex; flex-direction:column; justify-content:center; min-height:0; }
+.q:nth-child(3){ background:var(--panel); color:var(--on-dark); }
+.q-top{ display:flex; align-items:center; gap:18px; }
+.q-label{ font-family:var(--font-display); font-weight:700; font-size:34px; line-height:1.08; color:var(--fg); }
+.q:nth-child(3) .q-label{ color:var(--on-dark); }
+.q-body{ font-family:var(--font-body); font-size:26px; line-height:1.36; color:var(--muted); margin-top:14px; }
+.q:nth-child(3) .q-body{ color:var(--on-dark); }
+.q-tag{ position:absolute; top:26px; right:30px; border:1.5px solid var(--accent2); border-radius:999px;
+        padding:6px 16px; font-family:var(--font-body); font-size:22px; font-weight:600; color:var(--accent); }
+
+/* Implication line. Only chart_feature/metric_duel/mosaic_tiles could state a "so what", so every
+   other body slide terminated at claim -> support and judges read the deck as disconnected labelled
+   boxes. Optional: a required-but-unearned slot is a fabrication engine. */
+.takeaway{ flex:none; display:flex; align-items:flex-start; gap:18px; margin-top:16px;
+           font-family:var(--font-body); font-size:24px; line-height:1.28; color:var(--fg); }
+.takeaway .tk-mk{ flex:none; width:40px; height:4px; background:var(--accent); margin-top:11px; }
+.footer{ position:absolute; left:120px; right:120px; bottom:30px; display:flex; justify-content:space-between; align-items:center; padding-top:13px; font-family:var(--font-body); font-size:20px; letter-spacing:0.16em; text-transform:uppercase; color:var(--faint); }
+.footer .foot-rule{ position:absolute; top:0; left:0; right:0; height:1px; background:var(--faint); }
+.footer .brand{ color:var(--muted); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <header>
+    <div class="head-left">
+      <p class="eyebrow" data-slot="eyebrow">Objetivos de investigación</p>
+      <h1 class="title" data-slot="title">Cuatro preguntas, cuatro umbrales</h1>
+    </div>
+    <p class="subtitle" data-slot="subtitle">Cada RQ fija un criterio medible de éxito para su módulo del sistema</p>
+  </header>
+
+  <div class="grid">
+    <div class="cross-v"></div>
+    <div class="cross-h"></div>
+
+    <div class="q">
+      <p class="q-tag" data-slot="quadrants.0.tag">mIoU &gt; 0,70</p>
+      <div class="q-top">
+        <svg class="icon" viewBox="0 0 24 24" width="46" height="46" fill="none" stroke="#B4552D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+        <h2 class="q-label" data-slot="quadrants.0.label">RQ1 · Percepción BEV</h2>
+      </div>
+      <p class="q-body" data-slot="quadrants.0.body">¿Puede un BEV compacto de doble modalidad dar comprensión de escena suficiente para una cobertura segura?</p>
+    </div>
+
+    <div class="q">
+      <p class="q-tag" data-slot="quadrants.1.tag">RMSE &lt; 0,5 m</p>
+      <div class="q-top">
+        <svg class="icon" viewBox="0 0 24 24" width="46" height="46" fill="none" stroke="#B4552D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><rect width="8" height="8" x="3" y="3" rx="2"/><path d="M7 11v4a2 2 0 0 0 2 2h4"/><rect width="8" height="8" x="13" y="13" rx="2"/></svg>
+        <h2 class="q-label" data-slot="quadrants.1.label">RQ2 · Planificación</h2>
+      </div>
+      <p class="q-body" data-slot="quadrants.1.body">¿Boustrophedon + planificador lattice + MPC muestreado cumplen seguridad y seguimiento?</p>
+    </div>
+
+    <div class="q">
+      <p class="q-tag" data-slot="quadrants.2.tag">mIoU &gt; 0,70</p>
+      <div class="q-top">
+        <svg class="icon" viewBox="0 0 24 24" width="46" height="46" fill="none" stroke="#B4552D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+        <h2 class="q-label" data-slot="quadrants.2.label">RQ3 · Salud del cultivo</h2>
+      </div>
+      <p class="q-body" data-slot="quadrants.2.body">¿Alcanza DeepLabV3+ la identificación de salud del cultivo dentro de los límites de recursos del prototipo?</p>
+    </div>
+
+    <div class="q">
+      <p class="q-tag" data-slot="quadrants.3.tag">&gt; 5 Hz</p>
+      <div class="q-top">
+        <svg class="icon" viewBox="0 0 24 24" width="46" height="46" fill="none" stroke="#B4552D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
+        <h2 class="q-label" data-slot="quadrants.3.label">RQ4 · Tiempo real</h2>
+      </div>
+      <p class="q-body" data-slot="quadrants.3.body">¿Sostiene el pipeline integrado una operación en lazo cerrado en tiempo real sobre el vehículo?</p>
+    </div>
+
+  </div>
+  <div class="takeaway"><div class="tk-mk"></div><p data-slot="takeaway">Alcance: un vehículo, campo conocido, obstáculos estáticos, validación en simulación.</p></div>
+
+  <div class="footer">
+    <div class="foot-rule"></div>
+    <p class="brand" data-slot="footer_left">Navegación autónoma en BEV</p>
+    <p data-slot="footer_right">2026</p>
+  </div>
+</div>
+<style id="cf-contrast-fix">body > div:nth-child(1) > header:nth-child(1) > div:nth-child(1) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(4) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(5) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(6) > p:nth-child(1){color:#111111 !important;}</style><style id="cf-contrast-fix">body > div:nth-child(1) > div:nth-child(4) > p:nth-child(3){text-shadow:0 0 2px rgba(255,255,255,0.92), 0 0 3px rgba(255,255,255,0.92), 1px 1px 2px rgba(255,255,255,0.92), -1px -1px 2px rgba(255,255,255,0.92), 1px -1px 2px rgba(255,255,255,0.92), -1px 1px 2px rgba(255,255,255,0.92) !important;}</style><style id="cf-contrast-fix">body > div:nth-child(1) > div:nth-child(4) > p:nth-child(3){text-shadow:0 0 2px rgba(255,255,255,0.92), 0 0 3px rgba(255,255,255,0.92), 1px 1px 2px rgba(255,255,255,0.92), -1px -1px 2px rgba(255,255,255,0.92), 1px -1px 2px rgba(255,255,255,0.92), -1px 1px 2px rgba(255,255,255,0.92) !important;}</style></body>
+</html>

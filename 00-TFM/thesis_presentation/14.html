@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slide 14 – Local Trajectory Planning</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#F2F4EC;
+  --surface:#E6EAD9;
+  --panel:#2E3B2A;
+  --fg:#26311F;
+  --muted:#55624A;
+  --faint:#82907A;
+  --accent:#A4C05B;
+  --accent2:#B4552D;
+  --on-dark:#F2F4EC;
+  --on-accent:#26311F;
+  --grid:#D8DEC8;
+  --font-display:'Space Grotesk','Segoe UI',sans-serif;
+  --font-body:'Inter','Segoe UI',Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+p,h1,h2,h3,h4,h5,h6{margin:0;}
+body{margin:0;overflow:hidden;}
+.slide{
+  width:1920px;height:1080px;position:relative;overflow:hidden;
+  background:var(--bg);color:var(--fg);font-family:var(--font-body);
+  display:flex;flex-direction:column;padding:48px 96px 60px 96px;
+}
+header{flex:none;display:flex;justify-content:space-between;align-items:flex-end;gap:48px;}
+.eyebrow{font-family:var(--font-body);font-size:22px;font-weight:600;letter-spacing:0.4em;text-transform:uppercase;color:var(--accent);}
+.title{font-family:var(--font-display);font-weight:700;font-size:58px;line-height:1.04;letter-spacing:-0.01em;color:var(--fg);margin-top:8px;}
+.subtitle{font-family:var(--font-body);font-size:24px;line-height:1.34;color:var(--muted);text-align:right;max-width:480px;}
+.body{flex:1;min-height:0;display:flex;gap:40px;margin-top:28px;}
+.col{flex:1;min-width:0;display:flex;flex-direction:column;}
+.col-card{background:var(--surface);border-radius:18px;padding:24px 28px;flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;}
+.col-title{font-family:var(--font-display);font-weight:700;font-size:28px;color:var(--accent);margin-bottom:4px;}
+.col-item{display:flex;gap:12px;align-items:flex-start;}
+.dot{flex:none;width:10px;height:10px;border-radius:50%;background:var(--accent);margin-top:9px;}
+.dot.alt{background:var(--accent2);}
+.item-text{flex:1;min-width:0;}
+.item-label{font-family:var(--font-display);font-weight:700;font-size:24px;color:var(--fg);line-height:1.15;}
+.item-detail{font-family:var(--font-body);font-size:22px;color:var(--muted);line-height:1.3;margin-top:2px;}
+.flow-col{flex:0 0 360px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:0;}
+.flow-box{background:var(--panel);border-radius:14px;padding:14px 22px;width:100%;}
+.flow-box-title{font-family:var(--font-display);font-weight:700;font-size:24px;color:var(--accent);}
+.flow-box-body{font-family:var(--font-body);font-size:21px;color:var(--on-dark);margin-top:4px;line-height:1.3;}
+.flow-arrow{display:flex;align-items:center;justify-content:center;height:28px;}
+.flow-fallback{background:var(--surface);border-radius:14px;padding:14px 22px;width:100%;border:2px solid var(--accent2);}
+.flow-fallback-title{font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--accent2);}
+.flow-fallback-body{font-family:var(--font-body);font-size:20px;color:var(--muted);margin-top:3px;}
+.takeaway{flex:none;display:flex;align-items:flex-start;gap:18px;margin-top:16px;}
+.tk-mk{flex:none;width:40px;height:4px;background:var(--accent);margin-top:13px;}
+.takeaway p{font-family:var(--font-body);font-size:24px;line-height:1.28;color:var(--fg);}
+.footer{position:absolute;left:96px;right:96px;bottom:22px;display:flex;justify-content:space-between;align-items:center;padding-top:12px;font-family:var(--font-body);font-size:20px;letter-spacing:0.16em;text-transform:uppercase;color:var(--faint);}
+.foot-rule{position:absolute;top:0;left:0;right:0;height:1px;background:var(--faint);}
+.brand{color:var(--muted);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <header>
+    <div>
+      <p class="eyebrow">Hybrid Planning · Layer 2</p>
+      <h1 class="title">Local Trajectory Planning: ML + Classical Integration</h1>
+    </div>
+    <p class="subtitle">Learned scoring fused with classical feasibility and a hard safety gate</p>
+  </header>
+
+  <div class="body">
+    <!-- ML Component -->
+    <div class="col">
+      <div class="col-card">
+        <h2 class="col-title">ML Component: Trajectory Scoring Network</h2>
+        <div class="col-item">
+          <div class="dot"></div>
+          <div class="item-text">
+            <p class="item-label">Inputs</p>
+            <p class="item-detail">BEV map, ego state, goal position, candidate trajectories</p>
+          </div>
+        </div>
+        <div class="col-item">
+          <div class="dot"></div>
+          <div class="item-text">
+            <p class="item-label">Outputs</p>
+            <p class="item-detail">Per-candidate safety score ∈ [0, 1]</p>
+          </div>
+        </div>
+        <div class="col-item">
+          <div class="dot"></div>
+          <div class="item-text">
+            <p class="item-label">Training</p>
+            <p class="item-detail">Imitation learning from expert demos; binary cross-entropy loss</p>
+          </div>
+        </div>
+        <div class="col-item">
+          <div class="dot"></div>
+          <div class="item-text">
+            <p class="item-label">Architecture</p>
+            <p class="item-detail">CNN over BEV + MLP head; inference &lt; 5 ms on edge GPU</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Classical Component -->
+    <div class="col">
+      <div class="col-card">
+        <h2 class="col-title">Classical Component: Lattice Planner</h2>
+        <div class="col-item">
+          <div class="dot alt"></div>
+          <div class="item-text">
+            <p class="item-label">Candidate Generation</p>
+            <p class="item-detail">Kinematically-feasible trajectories over velocity and curvature grids</p>
+          </div>
+        </div>
+        <div class="col-item">
+          <div class="dot alt"></div>
+          <div class="item-text">
+            <p class="item-label">Collision Checking</p>
+            <p class="item-detail">Inflated occupancy grid — 2-cell margin around obstacles</p>
+          </div>
+        </div>
+        <div class="col-item">
+          <div class="dot alt"></div>
+          <div class="item-text">
+            <p class="item-label">Kinematic Constraints</p>
+            <p class="item-detail">Max turning radius, velocity limits, curvature continuity</p>
+          </div>
+        </div>
+        <div class="col-item">
+          <div class="dot alt"></div>
+          <div class="item-text">
+            <p class="item-label">Hybrid Score</p>
+            <p class="item-detail">S = 0.65 · ML<sub>score</sub> + 0.35 · (classical cost)<sup>−1</sup></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow Diagram -->
+    <div class="flow-col">
+      <h2 style="font-family:var(--font-display);font-weight:700;font-size:26px;color:var(--fg);margin-bottom:12px;text-align:center;">Integration Flow</h2>
+      <div class="flow-box">
+        <p class="flow-box-title">Lattice Generator</p>
+        <p class="flow-box-body">20 candidates · 0.2 s/step</p>
+      </div>
+      <div class="flow-arrow">
+        <svg width="24" height="28" viewBox="0 0 24 36"><path d="M12 0 L12 28 M4 20 L12 32 L20 20" stroke="#A4C05B" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+      </div>
+      <div class="flow-box">
+        <p class="flow-box-title">ML Scoring Net</p>
+        <p class="flow-box-body">Score each candidate</p>
+      </div>
+      <div class="flow-arrow">
+        <svg width="24" height="28" viewBox="0 0 24 36"><path d="M12 0 L12 28 M4 20 L12 32 L20 20" stroke="#A4C05B" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+      </div>
+      <div class="flow-box">
+        <p class="flow-box-title">Safety Gate</p>
+        <p class="flow-box-body">Hard collision check — reject unsafe</p>
+      </div>
+      <div class="flow-arrow">
+        <svg width="24" height="28" viewBox="0 0 24 36"><path d="M12 0 L12 28 M4 20 L12 32 L20 20" stroke="#A4C05B" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+      </div>
+      <div class="flow-box">
+        <p class="flow-box-title">Best Trajectory → MPC</p>
+        <p class="flow-box-body">Highest score among safe candidates</p>
+      </div>
+      <div class="flow-arrow">
+        <svg width="24" height="28" viewBox="0 0 24 36"><path d="M12 0 L12 28 M4 20 L12 32 L20 20" stroke="#B4552D" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+      </div>
+      <div class="flow-fallback">
+        <p class="flow-fallback-title">Fallback: Stop</p>
+        <p class="flow-fallback-body">No safe candidate → vehicle halts</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="takeaway">
+    <div class="tk-mk"></div>
+    <p>The safety gate is a hard constraint: if no collision-free candidate exists, the vehicle stops — ML uncertainty never overrides physical safety.</p>
+  </div>
+
+  <div class="footer">
+    <div class="foot-rule"></div>
+    <p class="brand">Hybrid BEV Navigation · TFM 2026</p>
+    <p>Slide 14 / 25</p>
+  </div>
+</div>
+<style id="cf-contrast-fix">body > div:nth-child(1) > header:nth-child(1) > div:nth-child(1) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1) > h2:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > h2:nth-child(1){color:#111111 !important;}</style></body>
+</html>

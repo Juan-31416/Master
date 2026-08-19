@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Enfoques de planificación y su idoneidad</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#F2F4EC;
+  --surface:#E6EAD9;
+  --panel:#2E3B2A;
+  --fg:#26311F;
+  --muted:#55624A;
+  --faint:#82907A;
+  --accent:#A4C05B;
+  --accent2:#B4552D;
+  --on-dark:#F2F4EC;
+  --on-accent:#26311F;
+  --grid:#D8DEC8;
+  --font-display:'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-body:'Inter', 'Segoe UI', Arial, sans-serif;
+}
+/* base.css — shared by every ppt_templates slide; the renderer inlines this into
+   each finished N.html so the output is fully self-contained (no runtime reference
+   to the template library).
+
+   Contains ONLY the layout contract + the design-variable-driven canvas. It declares
+   NO colour or font VALUES — those come from the palette :root block the renderer
+   injects. base.css = shared rules; palette = the values; template = the layout.
+
+   Design-variable contract (every palette defines all 13; templates use ONLY these):
+     --bg            slide canvas background (.slide)
+     --surface       raised/alternate surface (cards, zebra rows)
+     --panel         dark panel/scrim fill — pair its text with --on-dark
+     --fg            primary text on --bg
+     --muted         secondary body text
+     --faint         tertiary text, captions, subdued labels
+     --accent        primary accent (rules, markers, key highlights)
+     --accent2       secondary accent (emphasis / turning-point highlights)
+     --on-dark       text placed on --panel / dark fills
+     --on-accent     text placed on --accent fills
+     --grid          hairline dividers, rails, separators
+     --font-display  headline font stack
+     --font-body     body/label font stack
+
+   Export-safety notes (the PPTX exporter only extracts text inside <p>/<h1>-<h6>):
+   1. The margin reset is LOAD-BEARING. Browser default margins on <p>/<h*> silently
+      add ~440px of height on dense slides, which both pushes content off the 1080px
+      canvas AND inflates documentElement.scrollHeight so the slide-background
+      detector drops the background (white slide). Zeroing them kills that bug class
+      for every template at once.
+   2. The slide background lives on .slide (the root container), never on <body>. */
+
+*{margin:0;padding:0;box-sizing:border-box;}
+p,h1,h2,h3,h4,h5,h6{margin:0;}
+body{margin:0;overflow:hidden;}
+
+.slide{
+  width:1920px;
+  height:1080px;
+  position:relative;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:var(--font-body);
+}
+
+/* ---- v2 shared utilities (token-only; opt-in by the newer color-blocked templates) ---- */
+/* Color-blocked panels — SOLID fills only. The exporter maps a background <div> to a filled
+   PPTX shape (gradients are avoided by convention). Pair each fill with its readable text
+   token so contrast survives on both light and dark presets. */
+.block-surface{background:var(--surface);color:var(--fg);}
+.block-panel,.block-dark{background:var(--panel);color:var(--on-dark);}
+.block-accent{background:var(--accent);color:var(--on-accent);}
+.block-accent2{background:var(--accent2);color:var(--on-accent);}
+
+/* Inline-SVG icons: render_icon emits <svg class="icon"> with a LITERAL-hex stroke and explicit
+   width/height attrs (viewBox 0 0 24 24, so stroke scales with size). This rule only guarantees
+   clean block layout with no inline-baseline gap; color comes from the baked stroke. */
+.icon{display:block;flex:none;}
+
+/* IMG FAILURE — a resolved URL can still 404 at EXPORT time (hotlink 403, CDN miss). Without
+   this a broken <img> paints its alt text plus the UA's broken-file glyph into the slide; one
+   deck shipped an image query slug as visible body copy. Degrade to an empty panel instead. */
+img{ font-size:0; color:transparent; }
+
+/* FOOTER — a one-line strip whose hairline (.foot-rule) hangs at the box TOP while the box is
+   anchored at the slide bottom, so any growth is UPWARD, into body copy. Worst-case footer text
+   fits 1680px with ~6px to spare under Inter; the wider-bodied Work Sans palettes tipped it into
+   a wrap, doubling the strip and driving the rule through 3 templates' text. Slot text therefore
+   never wraps (ellipsize the overflow — the exporter still gets the full text), and the line
+   height is pinned so the rule's y no longer moves with the palette's font metrics. */
+.footer{ line-height:1.2; }
+.footer [data-slot]{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+
+.slide{ display:flex; flex-direction:column; padding:64px 96px 72px 96px; }
+
+header{ display:flex; justify-content:space-between; align-items:flex-end; gap:56px; flex:none; }
+.head-left{ max-width:66%; }
+.eyebrow{ font-family:var(--font-body); font-size:22px; font-weight:600; letter-spacing:0.4em; text-transform:uppercase; color:var(--accent); }
+.title{ font-family:var(--font-display); font-weight:700; font-size:70px; line-height:1.02; letter-spacing:-0.01em; color:var(--fg); margin-top:12px; }
+.subtitle{ font-family:var(--font-body); font-size:26px; line-height:1.34; color:var(--muted); text-align:right; max-width:520px; }
+
+/* Editorial rows: icon chip | name + body | right-aligned stat, split by hairlines */
+.rowsx{ flex:1; min-height:0; margin-top:26px; display:flex; flex-direction:column; justify-content:space-evenly; }
+.rowx{ display:grid; grid-template-columns:96px minmax(0,520px) minmax(0,1fr) auto; column-gap:44px;
+       align-items:center; padding:18px 0; position:relative; }
+.rowx + .rowx::before{ content:''; position:absolute; top:0; left:0; right:0; height:1px; background:var(--grid); }
+.chip{ width:82px; height:82px; border-radius:20px; background:var(--surface); border:1.5px solid var(--grid);
+       display:flex; align-items:center; justify-content:center; }
+.r-name{ font-family:var(--font-display); font-weight:700; font-size:35px; line-height:1.1; color:var(--fg); }
+.r-body{ font-family:var(--font-body); font-size:26px; line-height:1.34; color:var(--muted); }
+.r-stat{ text-align:right; min-width:170px; }
+.r-val{ font-family:var(--font-display); font-weight:700; font-size:52px; line-height:1; color:var(--accent); overflow-wrap:anywhere; }
+.r-lab{ font-family:var(--font-body); font-size:20px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--faint); margin-top:8px; }
+
+.footer{ position:absolute; left:120px; right:120px; bottom:30px; display:flex; justify-content:space-between; align-items:center; padding-top:13px; font-family:var(--font-body); font-size:20px; letter-spacing:0.16em; text-transform:uppercase; color:var(--faint); }
+.footer .foot-rule{ position:absolute; top:0; left:0; right:0; height:1px; background:var(--faint); }
+.footer .brand{ color:var(--muted); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <header>
+    <div class="head-left">
+      <p class="eyebrow" data-slot="eyebrow">Estado del arte · Planificación</p>
+      <h1 class="title" data-slot="title">Enfoques de planificación y su idoneidad</h1>
+    </div>
+    <p class="subtitle" data-slot="subtitle">La tesis combina lo clásico verificable con puntuación aprendida, evitando control extremo a extremo</p>
+  </header>
+
+  <section class="rowsx">
+
+    <div class="rowx">
+      <div class="chip"><svg class="icon" viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#A4C05B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><rect width="8" height="8" x="3" y="3" rx="2"/><path d="M7 11v4a2 2 0 0 0 2 2h4"/><rect width="8" height="8" x="13" y="13" rx="2"/></svg></div>
+      <div><h2 class="r-name" data-slot="rows.0.name">Boustrophedon (cobertura clásica)</h2></div>
+      <div><p class="r-body" data-slot="rows.0.body">Descomposición celular en pasadas paralelas al ancho de trabajo del apero</p></div>
+      <div class="r-stat">
+        <p class="r-val" data-slot="rows.0.stat_value">1 Hz</p>
+        <p class="r-lab" data-slot="rows.0.stat_label">Capa global adoptada</p>
+      </div>
+    </div>
+
+    <div class="rowx">
+      <div class="chip"><svg class="icon" viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#A4C05B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M15 6a9 9 0 0 0-9 9V3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/></svg></div>
+      <div><h2 class="r-name" data-slot="rows.1.name">Lattice de trayectorias</h2></div>
+      <div><p class="r-body" data-slot="rows.1.body">Candidatos discretos por velocidad y curvatura: seguro, acotado y auditable</p></div>
+      <div class="r-stat">
+        <p class="r-val" data-slot="rows.1.stat_value">20</p>
+        <p class="r-lab" data-slot="rows.1.stat_label">Pasos de 0,2 s</p>
+      </div>
+    </div>
+
+    <div class="rowx">
+      <div class="chip"><svg class="icon" viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#A4C05B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M12 18V5"/><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4"/><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5"/><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77"/><path d="M18 18a4 4 0 0 0 2-7.464"/><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517"/><path d="M6 18a4 4 0 0 1-2-7.464"/><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77"/></svg></div>
+      <div><h2 class="r-name" data-slot="rows.2.name">Puntuación por aprendizaje (IL)</h2></div>
+      <div><p class="r-body" data-slot="rows.2.body">Score ML combinado con coste clásico invertido en la capa local híbrida</p></div>
+      <div class="r-stat">
+        <p class="r-val" data-slot="rows.2.stat_value">0,65</p>
+        <p class="r-lab" data-slot="rows.2.stat_label">Peso alfa del score ML</p>
+      </div>
+    </div>
+
+    <div class="rowx">
+      <div class="chip"><svg class="icon" viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#A4C05B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg></div>
+      <div><h2 class="r-name" data-slot="rows.3.name">MPC muestreado</h2></div>
+      <div><p class="r-body" data-slot="rows.3.body">Bicicleta cinemática sin solver: rejilla de dirección y aceleración por ciclo</p></div>
+      <div class="r-stat">
+        <p class="r-val" data-slot="rows.3.stat_value">63</p>
+        <p class="r-lab" data-slot="rows.3.stat_label">Candidatos por ciclo</p>
+      </div>
+    </div>
+
+    <div class="rowx">
+      <div class="chip"><svg class="icon" viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#A4C05B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+      <div><h2 class="r-name" data-slot="rows.4.name">Aprendizaje por refuerzo (SAC)</h2></div>
+      <div><p class="r-body" data-slot="rows.4.body">Fuera del núcleo: solo en una envolvente segura verificada, como trabajo futuro</p></div>
+      <div class="r-stat">
+        <p class="r-val" data-slot="rows.4.stat_value">—</p>
+        <p class="r-lab" data-slot="rows.4.stat_label">Trabajo futuro</p>
+      </div>
+    </div>
+
+  </section>
+
+  <div class="footer">
+    <div class="foot-rule"></div>
+    <p class="brand" data-slot="footer_left">Navegación Autónoma Híbrida BEV</p>
+    <p data-slot="footer_right">2026</p>
+  </div>
+</div>
+<style id="cf-contrast-fix">body > div:nth-child(1) > header:nth-child(1) > div:nth-child(1) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(1) > div:nth-child(4) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(1) > div:nth-child(4) > p:nth-child(2){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(2) > div:nth-child(4) > p:nth-child(1){text-shadow:0 0 2px rgba(17,17,17,0.9), 0 0 3px rgba(17,17,17,0.9), 1px 1px 2px rgba(17,17,17,0.9), -1px -1px 2px rgba(17,17,17,0.9), 1px -1px 2px rgba(17,17,17,0.9), -1px 1px 2px rgba(17,17,17,0.9) !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(2) > div:nth-child(4) > p:nth-child(2){text-shadow:0 0 2px rgba(255,255,255,0.92), 0 0 3px rgba(255,255,255,0.92), 1px 1px 2px rgba(255,255,255,0.92), -1px -1px 2px rgba(255,255,255,0.92), 1px -1px 2px rgba(255,255,255,0.92), -1px 1px 2px rgba(255,255,255,0.92) !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(3) > div:nth-child(4) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(3) > div:nth-child(4) > p:nth-child(2){text-shadow:0 0 2px rgba(255,255,255,0.92), 0 0 3px rgba(255,255,255,0.92), 1px 1px 2px rgba(255,255,255,0.92), -1px -1px 2px rgba(255,255,255,0.92), 1px -1px 2px rgba(255,255,255,0.92), -1px 1px 2px rgba(255,255,255,0.92) !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(4) > div:nth-child(4) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(4) > div:nth-child(4) > p:nth-child(2){text-shadow:0 0 2px rgba(255,255,255,0.92), 0 0 3px rgba(255,255,255,0.92), 1px 1px 2px rgba(255,255,255,0.92), -1px -1px 2px rgba(255,255,255,0.92), 1px -1px 2px rgba(255,255,255,0.92), -1px 1px 2px rgba(255,255,255,0.92) !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(5) > div:nth-child(4) > p:nth-child(1){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(5) > div:nth-child(4) > p:nth-child(2){text-shadow:0 0 2px rgba(255,255,255,0.92), 0 0 3px rgba(255,255,255,0.92), 1px 1px 2px rgba(255,255,255,0.92), -1px -1px 2px rgba(255,255,255,0.92), 1px -1px 2px rgba(255,255,255,0.92), -1px 1px 2px rgba(255,255,255,0.92) !important;}body > div:nth-child(1) > div:nth-child(3) > p:nth-child(3){text-shadow:0 0 2px rgba(255,255,255,0.92), 0 0 3px rgba(255,255,255,0.92), 1px 1px 2px rgba(255,255,255,0.92), -1px -1px 2px rgba(255,255,255,0.92), 1px -1px 2px rgba(255,255,255,0.92), -1px 1px 2px rgba(255,255,255,0.92) !important;}</style><style id="cf-contrast-fix">body > div:nth-child(1) > section:nth-child(2) > div:nth-child(2) > div:nth-child(4) > p:nth-child(1){text-shadow:0 0 2px rgba(17,17,17,0.9), 0 0 3px rgba(17,17,17,0.9), 1px 1px 2px rgba(17,17,17,0.9), -1px -1px 2px rgba(17,17,17,0.9), 1px -1px 2px rgba(17,17,17,0.9), -1px 1px 2px rgba(17,17,17,0.9) !important;}</style><style id="cf-contrast-fix">body > div:nth-child(1) > section:nth-child(2) > div:nth-child(2) > div:nth-child(4) > p:nth-child(1){text-shadow:0 0 2px rgba(17,17,17,0.9), 0 0 3px rgba(17,17,17,0.9), 1px 1px 2px rgba(17,17,17,0.9), -1px -1px 2px rgba(17,17,17,0.9), 1px -1px 2px rgba(17,17,17,0.9), -1px 1px 2px rgba(17,17,17,0.9) !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(2) > div:nth-child(4) > p:nth-child(2){text-shadow:0 0 2px rgba(255,255,255,0.92), 0 0 3px rgba(255,255,255,0.92), 1px 1px 2px rgba(255,255,255,0.92), -1px -1px 2px rgba(255,255,255,0.92), 1px -1px 2px rgba(255,255,255,0.92), -1px 1px 2px rgba(255,255,255,0.92) !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(3) > div:nth-child(4) > p:nth-child(2){text-shadow:0 0 2px rgba(255,255,255,0.92), 0 0 3px rgba(255,255,255,0.92), 1px 1px 2px rgba(255,255,255,0.92), -1px -1px 2px rgba(255,255,255,0.92), 1px -1px 2px rgba(255,255,255,0.92), -1px 1px 2px rgba(255,255,255,0.92) !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(4) > div:nth-child(4) > p:nth-child(2){color:#111111 !important;}body > div:nth-child(1) > section:nth-child(2) > div:nth-child(5) > div:nth-child(4) > p:nth-child(2){text-shadow:0 0 2px rgba(255,255,255,0.92), 0 0 3px rgba(255,255,255,0.92), 1px 1px 2px rgba(255,255,255,0.92), -1px -1px 2px rgba(255,255,255,0.92), 1px -1px 2px rgba(255,255,255,0.92), -1px 1px 2px rgba(255,255,255,0.92) !important;}body > div:nth-child(1) > div:nth-child(3) > p:nth-child(3){text-shadow:0 0 2px rgba(255,255,255,0.92), 0 0 3px rgba(255,255,255,0.92), 1px 1px 2px rgba(255,255,255,0.92), -1px -1px 2px rgba(255,255,255,0.92), 1px -1px 2px rgba(255,255,255,0.92), -1px 1px 2px rgba(255,255,255,0.92) !important;}</style><style id="cf-contrast-fix">body > div:nth-child(1) > section:nth-child(2) > div:nth-child(2) > div:nth-child(4) > p:nth-child(1){text-shadow:0 0 2px rgba(17,17,17,0.9), 0 0 3px rgba(17,17,17,0.9), 1px 1px 2px rgba(17,17,17,0.9), -1px -1px 2px rgba(17,17,17,0.9), 1px -1px 2px rgba(17,17,17,0.9), -1px 1px 2px rgba(17,17,17,0.9) !important;}</style></body>
+</html>
